@@ -1,5 +1,4 @@
-
-export type Category = 'Funny' | 'Emotional' | 'Savage' | 'Creative' | 'Sports' | 'Dance';
+export type Category = 'Funny' | 'Emotional' | 'Savage' | 'Creative' | 'Sports' | 'Dance' | 'Rap' | 'Slumerican';
 
 export interface Badge {
   id: string;
@@ -168,6 +167,26 @@ export const videos: Video[] = [
     category: 'Emotional',
     likes: 193,
     createdAt: '2025-04-23T16:20:00Z'
+  },
+  {
+    id: '9',
+    title: 'Slumerican Freestyle',
+    url: 'https://example.com/video9.mp4',
+    thumbnail: '/placeholder.svg',
+    userId: '3',
+    category: 'Slumerican',
+    likes: 312,
+    createdAt: '2025-04-26T10:15:00Z'
+  },
+  {
+    id: '10',
+    title: 'Street Rap Battle',
+    url: 'https://example.com/video10.mp4',
+    thumbnail: '/placeholder.svg',
+    userId: '1',
+    category: 'Rap',
+    likes: 287,
+    createdAt: '2025-04-26T11:30:00Z'
   }
 ];
 
@@ -225,6 +244,24 @@ export const battles: Battle[] = [
     startTime: '2025-04-27T09:00:00Z',
     endTime: '2025-04-27T21:00:00Z',
     status: 'upcoming'
+  },
+  {
+    id: '7',
+    category: 'Slumerican',
+    video1Id: '9',
+    video2Id: '6',
+    startTime: '2025-04-26T12:00:00Z',
+    endTime: '2025-04-26T23:59:59Z',
+    status: 'active'
+  },
+  {
+    id: '8',
+    category: 'Rap',
+    video1Id: '10',
+    video2Id: '2',
+    startTime: '2025-04-26T12:00:00Z',
+    endTime: '2025-04-26T23:59:59Z',
+    status: 'active'
   }
 ];
 
@@ -265,4 +302,4 @@ export function getUsersByWins(limit: number = 10): User[] {
   return [...users].sort((a, b) => b.wins - a.wins).slice(0, limit);
 }
 
-export const categories: Category[] = ['Funny', 'Emotional', 'Savage', 'Creative', 'Sports', 'Dance'];
+export const categories: Category[] = ['Funny', 'Emotional', 'Savage', 'Creative', 'Sports', 'Dance', 'Rap', 'Slumerican'];

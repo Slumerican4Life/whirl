@@ -1,13 +1,16 @@
 
 import { useState, useEffect } from "react";
-import { categories, Category, getActiveBattles, Battle } from "@/lib/data";
+import { categories, Category, getActiveBattles, Battle, getBattlesByCategory } from "@/lib/data";
 import NavBar from "@/components/NavBar";
 import BattleCard from "@/components/BattleCard";
 import CategoryFilter from "@/components/CategoryFilter";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [activeBattles, setActiveBattles] = useState<Battle[]>([]);
+  const [slumericanBattles, setSlumericanBattles] = useState<Battle[]>([]);
 
   useEffect(() => {
     // Get all active battles
@@ -19,6 +22,9 @@ const Index = () => {
     } else {
       setActiveBattles(battles);
     }
+
+    // Get Slumerican battles separately for the dedicated section
+    setSlumericanBattles(getBattlesByCategory('Slumerican').filter(battle => battle.status === 'active'));
   }, [selectedCategory]);
 
   return (
@@ -48,6 +54,34 @@ const Index = () => {
             </div>
           </div>
         </section>
+        
+        {/* Slumerican Corner Section */}
+        {slumericanBattles.length > 0 && (
+          <section className="mb-12 p-6 rounded-lg bg-gradient-to-r from-black to-whirl-dark border border-whirl-red">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-bold text-white">
+                <span className="bg-gradient-to-r from-whirl-red via-whirl-orange to-whirl-purple text-transparent bg-clip-text">
+                  Slumerican Corner
+                </span>
+              </h2>
+              <Link to="/slumerican">
+                <Button variant="outline" className="border-whirl-red text-white hover:bg-whirl-red">
+                  Explore Slumerican
+                </Button>
+              </Link>
+            </div>
+            
+            <p className="text-gray-300 mb-6">
+              Dedicated to Yelawolf and the Slumerican culture. Raw, authentic, and straight from the streets.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {slumericanBattles.map((battle) => (
+                <BattleCard key={battle.id} battle={battle} />
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { categories, Category } from "@/lib/data";
@@ -26,7 +25,6 @@ const UploadPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Check if file is a video
     if (!file.type.startsWith("video/")) {
       toast({
         title: "Invalid file type",
@@ -36,7 +34,6 @@ const UploadPage = () => {
       return;
     }
     
-    // Check if file is too large (15MB)
     if (file.size > 15 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -48,7 +45,6 @@ const UploadPage = () => {
     
     setVideoFile(file);
     
-    // Create preview URL
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
   };
@@ -67,7 +63,6 @@ const UploadPage = () => {
     
     setUploading(true);
     
-    // Simulate upload delay
     setTimeout(() => {
       setUploading(false);
       
@@ -76,7 +71,6 @@ const UploadPage = () => {
         description: "Your video has been uploaded and will be scheduled for a battle soon.",
       });
       
-      // Redirect to home page
       navigate("/");
     }, 2000);
   };
@@ -110,12 +104,22 @@ const UploadPage = () => {
                       {categories.map((cat) => (
                         <div key={cat} className="flex items-center space-x-2">
                           <RadioGroupItem value={cat} id={cat} />
-                          <Label htmlFor={cat}>{cat}</Label>
+                          <Label htmlFor={cat} className={cat === 'Slumerican' ? 'text-whirl-red font-semibold' : ''}>{cat}</Label>
                         </div>
                       ))}
                     </div>
                   </RadioGroup>
                 </div>
+                
+                {(category === 'Slumerican' || category === 'Rap') && (
+                  <div className="p-3 bg-black/30 border border-whirl-purple rounded-md text-sm">
+                    <p className="text-white">
+                      {category === 'Slumerican' 
+                        ? 'Slumerican videos should represent authentic street culture, inspired by Yelawolf.' 
+                        : 'Rap battles showcase freestyle skills. Your video will be matched against other rappers.'}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="description">Description (optional)</Label>

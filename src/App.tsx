@@ -9,6 +9,7 @@ import UploadPage from "./pages/Upload";
 import BattlePage from "./pages/BattlePage";
 import LeaderboardPage from "./pages/Leaderboard";
 import ProfilePage from "./pages/Profile";
+import SlumericanPage from "./pages/Slumerican";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/battle/:id" element={<BattlePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/slumerican" element={<SlumericanPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

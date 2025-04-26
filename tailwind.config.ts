@@ -72,6 +72,9 @@ export default {
 					blue: '#0EA5E9',
 					red: '#ea384c',
 					dark: '#1A1F2C',
+					'slumerican-red': '#B91C1C',
+					'slumerican-gold': '#D97706',
+					'slumerican-black': '#121212'
 				}
 			},
 			borderRadius: {
