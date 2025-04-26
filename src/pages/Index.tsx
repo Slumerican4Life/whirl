@@ -35,7 +35,7 @@ const Index = () => {
         <section className="mb-8">
           <div className="flex flex-col items-center text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-whirl-purple via-whirl-pink to-whirl-orange text-transparent bg-clip-text">
-              WHIRL
+              WHIRL-WIN
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-4">
               15-second video battles. Vote, win, dominate.
@@ -116,3 +116,4 @@ const Index = () => {
 };
 
 export default Index;
+

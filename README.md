@@ -1,4 +1,5 @@
-# Welcome to your Lovable project
+
+# Welcome to your Whirl-Win project
 
 ## Project info
 
@@ -52,7 +53,7 @@ npm run dev
 
 ## What technologies are used for this project?
 
-This project is built with:
+Whirl-Win is built with:
 
 - Vite
 - TypeScript
@@ -71,3 +72,5 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+```
+

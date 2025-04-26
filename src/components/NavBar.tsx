@@ -11,7 +11,7 @@ const NavBar = () => {
           <div className="hidden md:flex items-center">
             <Link to="/" className="flex items-center">
               <span className="text-2xl font-bold bg-gradient-to-r from-whirl-purple to-whirl-pink text-transparent bg-clip-text">
-                Whirl
+                Whirl-Win
               </span>
             </Link>
           </div>
@@ -62,3 +62,4 @@ const NavBar = () => {
 };
 
 export default NavBar;
+
