@@ -1,26 +1,23 @@
 
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Battle, getBattle, getVideo, getUser } from "@/lib/data";
-import { useToast } from "@/components/ui/use-toast";
-import { ThumbsUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import NavBar from "@/components/NavBar";
+import { Battle, getBattle, getVideo, getUser } from "@/lib/data";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import VotingControls from "@/components/VotingControls";
+import { toast } from "sonner";
 
 const BattlePage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const { id } = useParams<{ id: string }>();
   const [battle, setBattle] = useState<Battle | null>(null);
   const [video1, setVideo1] = useState<any>(null);
   const [video2, setVideo2] = useState<any>(null);
   const [user1, setUser1] = useState<any>(null);
   const [user2, setUser2] = useState<any>(null);
-  const [votedFor, setVotedFor] = useState<string | null>(null);
-  const [video1Likes, setVideo1Likes] = useState(0);
-  const [video2Likes, setVideo2Likes] = useState(0);
-  
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (id) {
       const battleData = getBattle(id);
@@ -29,164 +26,158 @@ const BattlePage = () => {
         
         const v1 = getVideo(battleData.video1Id);
         const v2 = getVideo(battleData.video2Id);
+        setVideo1(v1);
+        setVideo2(v2);
         
         if (v1 && v2) {
-          setVideo1(v1);
-          setVideo2(v2);
-          setVideo1Likes(v1.likes);
-          setVideo2Likes(v2.likes);
-          
           const u1 = getUser(v1.userId);
           const u2 = getUser(v2.userId);
-          
-          if (u1 && u2) {
-            setUser1(u1);
-            setUser2(u2);
-          }
+          setUser1(u1);
+          setUser2(u2);
         }
-      } else {
-        navigate("/not-found");
       }
     }
-  }, [id, navigate]);
-  
-  const handleVote = (videoId: string) => {
-    if (votedFor) {
-      toast({
-        title: "Already voted",
-        description: "You've already cast your vote for this battle",
-      });
-      return;
-    }
-    
-    setVotedFor(videoId);
-    
-    if (videoId === video1?.id) {
-      setVideo1Likes(video1Likes + 1);
-      toast({
-        title: "Vote cast!",
-        description: `You voted for ${user1?.username}'s video`,
-      });
-    } else if (videoId === video2?.id) {
-      setVideo2Likes(video2Likes + 1);
-      toast({
-        title: "Vote cast!",
-        description: `You voted for ${user2?.username}'s video`,
-      });
-    }
-  };
-  
-  if (!battle || !video1 || !video2 || !user1 || !user2) {
+    setLoading(false);
+  }, [id]);
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center swirl-bg">
-        <div className="animate-pulse text-xl">Loading battle...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-t-whirl-purple border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-lg">Loading battle...</p>
+        </div>
       </div>
     );
   }
+
+  if (!battle || !video1 || !video2 || !user1 || !user2) {
+    return (
+      <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg">
+        <NavBar />
+        <main className="container mx-auto px-4 py-6">
+          <div className="text-center py-12">
+            <h1 className="text-3xl font-bold mb-2">Battle Not Found</h1>
+            <p className="text-muted-foreground">
+              Sorry, this battle doesn't exist or has been removed.
+            </p>
+            <Button className="mt-6" onClick={() => window.history.back()}>
+              Go Back
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Format the battle times
+  const startTime = new Date(battle.startTime).toLocaleString();
+  const endTime = new Date(battle.endTime).toLocaleString();
   
+  // Check if battle is active
+  const now = new Date();
+  const isActive = now > new Date(battle.startTime) && now < new Date(battle.endTime);
+  const isUpcoming = now < new Date(battle.startTime);
+  const isCompleted = now > new Date(battle.endTime);
+
   return (
     <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg">
       <NavBar />
       
       <main className="container mx-auto px-4 py-6">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
-              Battle: <Badge className="bg-whirl-purple">{battle.category}</Badge>
-            </h1>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/")}
-            >
-              Back to Battles
-            </Button>
+        <div className="max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-3xl font-bold">
+                {battle.category} Battle
+              </h1>
+              <p className="text-muted-foreground">
+                {isActive && "Active battle - Vote now!"}
+                {isUpcoming && "Upcoming battle - Starts soon!"}
+                {isCompleted && "This battle has ended"}
+              </p>
+            </div>
+            
+            <Badge className={`
+              ${isActive ? 'bg-green-500' : ''}
+              ${isUpcoming ? 'bg-blue-500' : ''}
+              ${isCompleted ? 'bg-gray-500' : ''}
+            `}>
+              {battle.status}
+            </Badge>
           </div>
           
-          <p className="text-muted-foreground">Vote for your favorite video to determine the champion!</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Video 1 */}
-          <div className={`rounded-lg overflow-hidden border-2 ${votedFor === video1.id ? 'border-whirl-purple animate-pulse-glow' : 'border-transparent'}`}>
-            <div className="p-4 bg-card">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <img 
-                    src={user1.avatar} 
-                    alt={user1.username} 
-                    className="w-8 h-8 rounded-full"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <Card className="overflow-hidden bg-black/30">
+                <div className="relative aspect-video">
+                  <video
+                    src={video1.url}
+                    poster={video1.thumbnail}
+                    controls
+                    className="w-full h-full object-cover"
                   />
-                  <div>
-                    <div className="font-semibold">{user1.username}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {user1.wins} wins
-                    </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg">{video1.title}</h3>
+                  <div className="flex items-center mt-2">
+                    <img
+                      src={user1.avatar}
+                      alt={user1.username}
+                      className="w-8 h-8 rounded-full mr-2"
+                    />
+                    <span>{user1.username}</span>
                   </div>
+                  {isActive && (
+                    <div className="mt-4">
+                      <VotingControls battleId={battle.id} videoId={video1.id} />
+                    </div>
+                  )}
                 </div>
-                
-                <div className="flex items-center gap-1 bg-black/30 px-2 py-1 rounded-full">
-                  <span className="text-sm">❤️ {video1Likes}</span>
+              </Card>
+            </div>
+            
+            <div className="space-y-4">
+              <Card className="overflow-hidden bg-black/30">
+                <div className="relative aspect-video">
+                  <video
+                    src={video2.url}
+                    poster={video2.thumbnail}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              </div>
-              
-              <div className="aspect-video bg-black rounded-lg mb-3">
-                <img 
-                  src={video1.thumbnail} 
-                  alt={video1.title} 
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              
-              <Button 
-                className="w-full bg-whirl-purple hover:bg-whirl-deep-purple"
-                onClick={() => handleVote(video1.id)}
-                disabled={!!votedFor}
-              >
-                <ThumbsUp className="mr-2 h-4 w-4" />
-                {votedFor === video1.id ? "Voted!" : "Vote"}
-              </Button>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg">{video2.title}</h3>
+                  <div className="flex items-center mt-2">
+                    <img
+                      src={user2.avatar}
+                      alt={user2.username}
+                      className="w-8 h-8 rounded-full mr-2"
+                    />
+                    <span>{user2.username}</span>
+                  </div>
+                  {isActive && (
+                    <div className="mt-4">
+                      <VotingControls battleId={battle.id} videoId={video2.id} />
+                    </div>
+                  )}
+                </div>
+              </Card>
             </div>
           </div>
           
-          {/* Video 2 */}
-          <div className={`rounded-lg overflow-hidden border-2 ${votedFor === video2.id ? 'border-whirl-purple animate-pulse-glow' : 'border-transparent'}`}>
-            <div className="p-4 bg-card">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <img 
-                    src={user2.avatar} 
-                    alt={user2.username} 
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <div>
-                    <div className="font-semibold">{user2.username}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {user2.wins} wins
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-1 bg-black/30 px-2 py-1 rounded-full">
-                  <span className="text-sm">❤️ {video2Likes}</span>
-                </div>
+          <div className="mt-8 bg-card p-4 rounded-lg">
+            <h3 className="font-semibold mb-2">Battle Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p><span className="font-medium">Category:</span> {battle.category}</p>
+                <p><span className="font-medium">Status:</span> {battle.status}</p>
               </div>
-              
-              <div className="aspect-video bg-black rounded-lg mb-3">
-                <img 
-                  src={video2.thumbnail} 
-                  alt={video2.title} 
-                  className="object-cover w-full h-full"
-                />
+              <div>
+                <p><span className="font-medium">Starts:</span> {startTime}</p>
+                <p><span className="font-medium">Ends:</span> {endTime}</p>
               </div>
-              
-              <Button 
-                className="w-full bg-whirl-purple hover:bg-whirl-deep-purple"
-                onClick={() => handleVote(video2.id)}
-                disabled={!!votedFor}
-              >
-                <ThumbsUp className="mr-2 h-4 w-4" />
-                {votedFor === video2.id ? "Voted!" : "Vote"}
-              </Button>
             </div>
           </div>
         </div>
