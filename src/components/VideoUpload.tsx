@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { categories } from "@/lib/data";
 import { toast } from "sonner";
 import { Upload, Video } from "lucide-react";
+import { uploadVideo } from "@/lib/videos";
+import { supabase } from "@/integrations/supabase/client";
 
 const VideoUpload = () => {
   const [title, setTitle] = useState("");
@@ -39,18 +41,30 @@ const VideoUpload = () => {
       return;
     }
     
+    // Check if user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error("You must be logged in to upload videos");
+      return;
+    }
+    
     setUploading(true);
     
-    // In a real app, you would upload the file to a server here
-    // For now, we'll simulate a successful upload
-    setTimeout(() => {
+    try {
+      // Upload the video to Supabase storage
+      const { url, thumbnailUrl } = await uploadVideo(videoFile);
+      
       toast.success("Video uploaded successfully! It will be matched for a battle soon.");
       setTitle("");
       setCategory("");
       setVideoFile(null);
       setPreviewUrl(null);
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast.error(error.message || "Failed to upload video");
+    } finally {
       setUploading(false);
-    }, 2000);
+    }
   };
 
   return (
