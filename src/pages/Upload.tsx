@@ -2,8 +2,19 @@
 import NavBar from "@/components/NavBar";
 import VideoUpload from "@/components/VideoUpload";
 import { Separator } from "@/components/ui/separator";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const UploadPage = () => {
+  const { loading } = useRequireAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center swirl-bg">
+        <div className="animate-pulse text-lg">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg">
       <NavBar />

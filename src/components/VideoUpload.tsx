@@ -8,7 +8,7 @@ import { categories } from "@/lib/data";
 import { toast } from "sonner";
 import { Upload, Video } from "lucide-react";
 import { uploadVideo } from "@/lib/videos";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const VideoUpload = () => {
   const [title, setTitle] = useState("");
@@ -16,6 +16,7 @@ const VideoUpload = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,8 +43,7 @@ const VideoUpload = () => {
     }
     
     // Check if user is authenticated
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    if (!user) {
       toast.error("You must be logged in to upload videos");
       return;
     }

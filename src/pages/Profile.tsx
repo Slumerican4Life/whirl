@@ -5,13 +5,24 @@ import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/NavBar";
 import VideoCard from "@/components/VideoCard";
 import { videos } from "@/lib/data";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const ProfilePage = () => {
+  const { user, loading } = useRequireAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center swirl-bg">
+        <div className="animate-pulse text-lg">Loading...</div>
+      </div>
+    );
+  }
+
   // Use the first user for now
-  const user = users[0];
+  const demoUser = users[0];
   
   // Get videos for this user
-  const userVideos = videos.filter(video => video.userId === user.id);
+  const userVideos = videos.filter(video => video.userId === demoUser.id);
   
   return (
     <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg">
@@ -22,19 +33,21 @@ const ProfilePage = () => {
           <div className="flex flex-col items-center mb-8">
             <div className="w-24 h-24 md:w-32 md:h-32 mb-4 relative">
               <img 
-                src={user.avatar} 
-                alt={user.username} 
+                src={demoUser.avatar} 
+                alt={demoUser.username || user?.email || "User"} 
                 className="rounded-full border-4 border-whirl-purple animate-pulse-glow"
               />
               <div className="absolute -bottom-2 -right-2 bg-whirl-purple text-white rounded-full px-2 py-1 text-xs font-semibold">
-                {user.wins} Wins
+                {demoUser.wins} Wins
               </div>
             </div>
             
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">{user.username}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">
+              {demoUser.username || user?.email?.split('@')[0] || "User"}
+            </h1>
             
             <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {user.badges.map((badge) => (
+              {demoUser.badges.map((badge) => (
                 <Badge key={badge.id} className="bg-card/70 hover:bg-card/70 text-foreground">
                   {badge.icon} {badge.name}
                 </Badge>
@@ -66,7 +79,7 @@ const ProfilePage = () => {
             
             <TabsContent value="badges">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {user.badges.map((badge) => (
+                {demoUser.badges.map((badge) => (
                   <div key={badge.id} className="p-4 bg-card rounded-lg flex items-center">
                     <div className="text-4xl mr-3">{badge.icon}</div>
                     <div>

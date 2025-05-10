@@ -4,11 +4,21 @@ import { getUsersByWins, User } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NavBar from "@/components/NavBar";
 import { Award } from "lucide-react";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const LeaderboardPage = () => {
+  const { loading } = useRequireAuth();
   const [timeframe, setTimeframe] = useState<"daily" | "weekly">("daily");
   
   const topUsers = getUsersByWins(10);
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center swirl-bg">
+        <div className="animate-pulse text-lg">Loading...</div>
+      </div>
+    );
+  }
   
   const renderUserRank = (user: User, index: number) => {
     return (
