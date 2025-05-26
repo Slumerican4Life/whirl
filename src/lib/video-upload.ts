@@ -7,9 +7,15 @@ import { generateThumbnail, dataUrlToBlob } from "./thumbnails";
  * Uploads a video to the storage bucket, generates a thumbnail,
  * and inserts a record into the videos table
  * @param file Video file to upload
- * @returns Promise with URLs of the uploaded video and thumbnail
+ * @param title Title of the video
+ * @param category Category of the video
+ * @returns Promise with URLs of the uploaded video and thumbnail, and video ID
  */
-export const uploadVideo = async (file: File): Promise<{ url: string, thumbnailUrl: string }> => {
+export const uploadVideo = async (
+  file: File, 
+  title: string, 
+  category: string
+): Promise<{ video_url: string, thumbnailUrl: string, videoId: string }> => {
   try {
     // Check authentication first
     const { data: { user } } = await supabase.auth.getUser();
@@ -35,19 +41,17 @@ export const uploadVideo = async (file: File): Promise<{ url: string, thumbnailU
     }
     
     // Get public URL for the uploaded video
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl: videoPublicUrl } } = supabase.storage
       .from('battle-videos')
       .getPublicUrl(filePath);
     
     // Generate and upload thumbnail
     let thumbnailUrl = "";
     try {
-      // Generate thumbnail from video
       const thumbnailDataUrl = await generateThumbnail(file);
       const thumbnailBlob = dataUrlToBlob(thumbnailDataUrl);
       const thumbnailFile = new File([thumbnailBlob], `thumbnail_${fileName.replace(`.${fileExt}`, '.jpg')}`, { type: 'image/jpeg' });
       
-      // Upload thumbnail to storage
       const thumbnailPath = `${user.id}/thumbnails/${thumbnailFile.name}`;
       const { error: thumbnailError } = await supabase.storage
         .from('battle-videos')
@@ -60,30 +64,37 @@ export const uploadVideo = async (file: File): Promise<{ url: string, thumbnailU
         const { data: { publicUrl: thumbPublicUrl } } = supabase.storage
           .from('battle-videos')
           .getPublicUrl(thumbnailPath);
-        
         thumbnailUrl = thumbPublicUrl;
       }
-    } catch (thumbnailError) {
-      console.error("Error generating thumbnail:", thumbnailError);
+    } catch (thumbnailGenError) {
+      console.error("Error generating or uploading thumbnail:", thumbnailGenError);
       // Continue without thumbnail if it fails
     }
     
     // Insert record into videos table
-    const { error: insertError } = await supabase
+    const { data: newVideo, error: insertError } = await supabase
       .from('videos')
       .insert({
         user_id: user.id,
-        url: publicUrl,
+        video_url: videoPublicUrl, // Changed from 'url' to 'video_url'
         thumbnail_url: thumbnailUrl || null,
-      });
+        title: title, // Added title
+        category: category || null, // Added category
+      })
+      .select('id')
+      .single(); // To get the ID of the newly inserted video
     
     if (insertError) {
       throw new Error(`Error inserting video record: ${insertError.message}`);
     }
+    if (!newVideo || !newVideo.id) {
+      throw new Error('Failed to retrieve video ID after insert.');
+    }
     
     return {
-      url: publicUrl,
+      video_url: videoPublicUrl,
       thumbnailUrl: thumbnailUrl,
+      videoId: newVideo.id,
     };
   } catch (error: any) {
     console.error("Video upload failed:", error);

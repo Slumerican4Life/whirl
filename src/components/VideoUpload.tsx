@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { categories } from "@/lib/data";
+import { categories } from "@/lib/data"; // Ensure categories list is appropriate
 import { toast } from "sonner";
-import { Upload, Video } from "lucide-react";
-import { uploadVideo } from "@/lib/videos";
+import { Upload, Video as VideoIcon } from "lucide-react"; // Renamed Video to VideoIcon to avoid conflict
+import { uploadVideo } from "@/lib/videos"; // Assuming this re-exports the updated uploadVideo
 import { useAuth } from "@/contexts/AuthContext";
 
 const VideoUpload = () => {
@@ -21,13 +21,11 @@ const VideoUpload = () => {
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check if file is a video
       if (!file.type.startsWith('video/')) {
         toast.error("Please select a video file");
         return;
       }
       
-      // Create preview URL
       const url = URL.createObjectURL(file);
       setVideoFile(file);
       setPreviewUrl(url);
@@ -42,7 +40,6 @@ const VideoUpload = () => {
       return;
     }
     
-    // Check if user is authenticated
     if (!user) {
       toast.error("You must be logged in to upload videos");
       return;
@@ -51,8 +48,8 @@ const VideoUpload = () => {
     setUploading(true);
     
     try {
-      // Upload the video to Supabase storage
-      const { url, thumbnailUrl } = await uploadVideo(videoFile);
+      // Pass title and category to uploadVideo
+      await uploadVideo(videoFile, title, category); 
       
       toast.success("Video uploaded successfully! It will be matched for a battle soon.");
       setTitle("");
@@ -82,6 +79,9 @@ const VideoUpload = () => {
               onClick={() => {
                 setVideoFile(null);
                 setPreviewUrl(null);
+                if (document.getElementById('video-upload')) {
+                  (document.getElementById('video-upload') as HTMLInputElement).value = "";
+                }
               }}
             >
               Remove Video
@@ -90,7 +90,7 @@ const VideoUpload = () => {
         ) : (
           <div className="space-y-4">
             <div className="flex flex-col items-center justify-center">
-              <Video className="h-16 w-16 text-muted-foreground" />
+              <VideoIcon className="h-16 w-16 text-muted-foreground" />
               <p className="mt-2 text-sm text-muted-foreground">
                 Upload a video (max 30 seconds)
               </p>
@@ -103,9 +103,11 @@ const VideoUpload = () => {
               onChange={handleVideoChange}
             />
             <Label htmlFor="video-upload" className="cursor-pointer">
-              <Button variant="outline" type="button" className="w-full">
-                <Upload className="mr-2 h-4 w-4" />
-                Select Video
+              <Button variant="outline" type="button" asChild>
+                <span>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Select Video
+                </span>
               </Button>
             </Label>
           </div>
@@ -120,7 +122,7 @@ const VideoUpload = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter a catchy title"
-            maxLength={50}
+            maxLength={100} // Increased max length slightly based on typical DB limits
           />
         </div>
 
