@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +9,20 @@ import TokenPurchaseOptions from "@/components/TokenPurchaseOptions";
 import { Coins, Film } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserVideos } from "@/lib/video-queries"; // Use our query function
-import type { Video } from "@/lib/types"; // Import the updated Video type
+import type { Video as DbVideo } from "@/lib/types"; // Renamed to DbVideo to avoid confusion
 import { Skeleton } from "@/components/ui/skeleton"; // For loading state
+
+// Define the type expected by VideoCard, based on inference and common patterns (like src/lib/data.ts's Video type)
+interface VideoCardVideo {
+  id: string;
+  title: string;
+  url: string;
+  thumbnail: string;
+  userId: string;
+  category: string; // Assuming VideoCard can handle string for category
+  likes: number;
+  createdAt: string;
+}
 
 const ProfilePage = () => {
   const { user, loading: authLoading } = useRequireAuth();
@@ -23,7 +34,7 @@ const ProfilePage = () => {
   const { data: userVideos, isLoading: videosLoading, error: videosError } = useQuery({
     queryKey: ['userVideos', user?.id],
     queryFn: () => {
-      if (!user?.id) return Promise.resolve([]); // Or throw error
+      if (!user?.id) return Promise.resolve([]);
       return getUserVideos(user.id);
     },
     enabled: !!user?.id, // Only run query if user.id is available
@@ -41,23 +52,24 @@ const ProfilePage = () => {
             .eq('user_id', user.id)
             .single();
 
-          if (error && error.code !== 'PGRST116') {
+          if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine
+            // console.error("Error fetching token balance (non-PGRST116):", error);
             throw error;
           }
           setTokenBalance(data?.balance ?? 0);
-        } catch (e) {
-          console.error("Error fetching token balance:", e);
+        } catch (e: any) {
+          console.error("Error fetching token balance:", e.message);
           setTokenBalance(0); 
         } finally {
           setLoadingBalance(false);
         }
       } else {
-        setTokenBalance(null);
-        setLoadingBalance(false);
+        setTokenBalance(null); // Clear balance if no user
+        setLoadingBalance(false); // Not loading if no user
       }
     };
 
-    if (!authLoading) {
+    if (!authLoading) { // Only fetch if auth is settled
       fetchTokenBalance();
     }
   }, [user, authLoading]);
@@ -159,9 +171,20 @@ const ProfilePage = () => {
               )}
               {!videosLoading && !videosError && userVideos && userVideos.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {userVideos.map((video: Video) => ( // Ensure video is typed
-                    <VideoCard key={video.id} video={video} />
-                  ))}
+                  {userVideos.map((dbVideo: DbVideo) => {
+                    // Transform dbVideo to the format expected by VideoCard
+                    const cardVideo: VideoCardVideo = {
+                      id: dbVideo.id,
+                      title: dbVideo.title,
+                      url: dbVideo.video_url,
+                      thumbnail: dbVideo.thumbnail_url || '/placeholder.svg', // Provide a fallback
+                      userId: dbVideo.user_id,
+                      category: dbVideo.category || 'General', // Provide a fallback
+                      likes: 0, // Default 'likes' as it's not in DbVideo
+                      createdAt: dbVideo.created_at, // Map created_at to createdAt
+                    };
+                    return <VideoCard key={dbVideo.id} video={cardVideo} />;
+                  })}
                 </div>
               ) : (
                 !videosLoading && !videosError && (
