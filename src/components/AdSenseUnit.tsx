@@ -3,10 +3,10 @@ import React, { useEffect, useRef } from 'react';
 
 declare global {
   interface Window {
-    adsbygoogle?: {
-      push: (params: object) => void;
-      loaded?: boolean;
-    }[];
+    adsbygoogle?: Array<object> & { // It's an array...
+      push: (params: object) => void; // ...that has a push method
+      loaded?: boolean; // ...and an optional loaded flag
+    };
   }
 }
 
@@ -37,11 +37,13 @@ const AdSenseUnit: React.FC<AdSenseUnitProps> = ({
     const attemptPush = () => {
       try {
         if (window.adsbygoogle && typeof window.adsbygoogle.push === 'function') {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          // Ensure adsbygoogle is treated as an array for the push operation
+          // The actual push is on the adsbygoogle array-like object itself.
+          const adsQueue = window.adsbygoogle || [];
+          adsQueue.push({}); // Push an empty object for the ad slot
           console.log(`AdSense: Pushed slot ${slot} (${comment || 'No comment'})`);
         } else {
           console.warn(`AdSense: window.adsbygoogle.push not available for slot ${slot}. Retrying...`);
-          // Optional: implement a more sophisticated retry with backoff
           setTimeout(attemptPush, 1000); // Retry after 1 second
         }
       } catch (e) {
@@ -49,25 +51,35 @@ const AdSenseUnit: React.FC<AdSenseUnitProps> = ({
       }
     };
     
+    // Check if the adsbygoogle script has loaded using its 'loaded' property
     if (window.adsbygoogle?.loaded) {
       attemptPush();
     } else {
-      // If adsbygoogle is not loaded yet, wait for it.
-      // This is a simple check; more robust would be an event listener for script load.
-      const SCRIPT_ID = 'adsbygoogle-script'; // Assuming the main script has an ID or find another way
-      const script = document.querySelector(`script[src*="adsbygoogle.js"]`);
+      const SCRIPT_ID = 'adsbygoogle-script'; // ID of the main AdSense script in index.html
+      // Attempt to find the script element by its known src pattern or ID
+      const script = document.querySelector(`script[src*="adsbygoogle.js"][id="${SCRIPT_ID}"], script[src*="adsbygoogle.js"]`) as HTMLScriptElement | null;
       if (script) {
-        script.addEventListener('load', attemptPush);
-        script.addEventListener('error', () => console.error(`AdSense: Failed to load adsbygoogle.js for slot ${slot}`));
-        // Clean up event listener
-        return () => {
-          script.removeEventListener('load', attemptPush);
+        const handleScriptLoad = () => {
+          // Once the script is loaded, set the global 'loaded' flag if AdSense does this.
+          // Or, more simply, just attempt the push.
+          if (window.adsbygoogle) { // Check again in case it initialized
+            window.adsbygoogle.loaded = true; // Manually indicate loaded if not set by script
+          }
+          attemptPush();
+          script.removeEventListener('load', handleScriptLoad); // Clean up
+          script.removeEventListener('error', handleScriptError); // Clean up
         };
+        const handleScriptError = () => {
+          console.error(`AdSense: Failed to load adsbygoogle.js for slot ${slot}`);
+          script.removeEventListener('load', handleScriptLoad); // Clean up
+          script.removeEventListener('error', handleScriptError); // Clean up
+        };
+        
+        script.addEventListener('load', handleScriptLoad);
+        script.addEventListener('error', handleScriptError);
       } else {
-        // Fallback if script is not found (e.g. ad blocker removed it)
-        console.warn(`AdSense: Main adsbygoogle.js script not found for slot ${slot}. Ads may not load.`);
-        // Still try to push, maybe it loads later
-        setTimeout(attemptPush, 2000);
+        console.warn(`AdSense: Main adsbygoogle.js script not found for slot ${slot}. Ads may not load. Attempting push anyway.`);
+        setTimeout(attemptPush, 2000); // Fallback push attempt
       }
     }
 
@@ -85,7 +97,10 @@ const AdSenseUnit: React.FC<AdSenseUnitProps> = ({
     adProps['data-full-width-responsive'] = 'true';
   }
 
-
+  // The second script tag for pushing is often not needed if the useEffect handles it,
+  // especially for dynamically inserted ad units.
+  // However, AdSense docs sometimes show it. If issues persist, it might be re-added.
+  // For now, relying on useEffect to push after the <ins> tag is rendered.
   return (
     <>
       {comment && <script dangerouslySetInnerHTML={{ __html: `/* ${comment} */` }} />}
@@ -94,8 +109,8 @@ const AdSenseUnit: React.FC<AdSenseUnitProps> = ({
         className={`adsbygoogle ${className || ''}`}
         style={style}
         {...adProps}
+        data-testid={`adsense-unit-${slot}`} // For testing
       />
-      <script dangerouslySetInnerHTML={{ __html: '(adsbygoogle = window.adsbygoogle || []).push({});' }} />
     </>
   );
 };
