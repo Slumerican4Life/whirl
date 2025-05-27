@@ -1,1 +1,20 @@
+
 project_id = "wmqyobnckgzoysbpjuuy"
+
+[functions.create-token-checkout-session]
+# verify_jwt = true # Default, uncomment to be explicit
+
+[functions.fulfill-token-purchase]
+# verify_jwt = true # Default
+
+[functions.spend-token]
+# verify_jwt = true # Default
+
+[functions.stripe-webhook]
+verify_jwt = false # Webhooks from Stripe are verified by signature, not JWT
+# You might want to add specific headers Stripe sends if needed for other middleware,
+# but for basic operation, this is primary.
+
+# Ensure you have DENO_KV_PATH set if using Deno KV for any function (not used here)
+# [experimental.deno_kv]
+# path = ".deno/kv"

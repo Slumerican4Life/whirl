@@ -8,29 +8,40 @@ import { Coins } from "lucide-react";
 interface TokenPackage {
   name: string;
   tokens: number;
-  priceId: string; // Replace with actual Stripe Price IDs
+  priceId: string;
   priceDisplay: string;
 }
 
-// IMPORTANT: Replace these with your actual Stripe Price IDs
 const tokenPackages: TokenPackage[] = [
-  { name: "10 Tokens", tokens: 10, priceId: "price_YOUR_1_DOLLAR_PRICE_ID", priceDisplay: "$1.00" },
-  { name: "60 Tokens", tokens: 60, priceId: "price_YOUR_5_DOLLAR_PRICE_ID", priceDisplay: "$5.00" },
-  { name: "150 Tokens", tokens: 150, priceId: "price_YOUR_10_DOLLAR_PRICE_ID", priceDisplay: "$10.00" },
+  { name: "10 Tokens", tokens: 10, priceId: "price_1ROxiBEEqiDDPmsdDTesTTtq", priceDisplay: "$0.99" },
+  { name: "60 Tokens", tokens: 60, priceId: "price_1ROxs9EEqiDDPmsdZuQxtkY9", priceDisplay: "$4.99" },
+  { name: "150 Tokens", tokens: 150, priceId: "price_1ROxvXEEqiDDPmsdi64iXrwK", priceDisplay: "$10.00" },
 ];
 
 const TokenPurchaseOptions = () => {
   const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
 
-  const handlePurchase = async (priceId: string) => {
-    setLoadingPriceId(priceId);
+  const handlePurchase = async (pkg: TokenPackage) => {
+    setLoadingPriceId(pkg.priceId);
     try {
+      // Prepare metadata for the webhook
+      const productMetadata = {
+        product_type: "tokens",
+        price_id: pkg.priceId, // Webhook can use this to find token amount
+        // For other product types, more specific metadata would be added here
+        // e.g., target_user_id for tips, item_id for avatar items, etc.
+      };
+
       const { data, error } = await supabase.functions.invoke('create-token-checkout-session', {
-        body: { priceId, quantity: 1 },
+        body: { 
+          priceId: pkg.priceId, 
+          quantity: 1,
+          product_metadata: productMetadata // Pass metadata here
+        },
       });
 
       if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (data.error) throw new Error(data.error.message || data.error); // Access error message
       
       if (data.url) {
         window.location.href = data.url;
@@ -40,7 +51,8 @@ const TokenPurchaseOptions = () => {
     } catch (e: any) {
       console.error("Purchase error:", e);
       toast.error(e.message || "Failed to initiate purchase.");
-      setLoadingPriceId(null);
+    } finally {
+      setLoadingPriceId(null); // Ensure loading state is reset in all cases
     }
   };
 
@@ -54,7 +66,7 @@ const TokenPurchaseOptions = () => {
             <h3 className="text-xl font-semibold">{pkg.tokens} Tokens</h3>
             <p className="text-muted-foreground mb-4">{pkg.priceDisplay}</p>
             <Button
-              onClick={() => handlePurchase(pkg.priceId)}
+              onClick={() => handlePurchase(pkg)}
               disabled={loadingPriceId === pkg.priceId}
               className="w-full bg-whirl-purple hover:bg-whirl-deep-purple"
             >
@@ -64,10 +76,11 @@ const TokenPurchaseOptions = () => {
         ))}
       </div>
        <p className="text-xs text-muted-foreground mt-4 text-center">
-        Make sure your Stripe Price IDs are correctly set in <code>src/components/TokenPurchaseOptions.tsx</code> and <code>supabase/functions/fulfill-token-purchase/index.ts</code>.
+        Tokens allow you to participate in battles, boost videos, and unlock special features.
       </p>
     </div>
   );
 };
 
 export default TokenPurchaseOptions;
+
