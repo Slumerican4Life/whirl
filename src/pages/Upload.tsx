@@ -24,7 +24,7 @@ const UploadPage = () => {
           <div className="flex flex-col items-center mb-8">
             <h1 className="text-3xl font-bold">Upload Your Video</h1>
             <p className="text-muted-foreground text-center mt-2">
-              Show off your skills in a 15-second video battle
+              Show off your skills in a 60-second video battle
             </p>
           </div>
           

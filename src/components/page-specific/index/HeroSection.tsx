@@ -10,7 +10,7 @@ const HeroSection: React.FC = () => {
           WHIRL-WIN
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground mb-4">
-          15-second video battles. Vote, win, dominate.
+          60-second video battles. Vote, win, dominate.
         </p>
         <div className="flex space-x-4">
           <Link to="/upload" className="animate-pulse-glow rounded-md">
@@ -30,4 +30,3 @@ const HeroSection: React.FC = () => {
 };
 
 export default HeroSection;
-

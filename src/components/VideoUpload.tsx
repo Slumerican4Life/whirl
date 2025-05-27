@@ -92,7 +92,7 @@ const VideoUpload = () => {
             <div className="flex flex-col items-center justify-center">
               <VideoIcon className="h-16 w-16 text-muted-foreground" />
               <p className="mt-2 text-sm text-muted-foreground">
-                Upload a video (max 30 seconds)
+                Upload a video (max 60 seconds)
               </p>
             </div>
             <Input
