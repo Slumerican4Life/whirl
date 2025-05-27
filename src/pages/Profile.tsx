@@ -8,18 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import TokenPurchaseOptions from "@/components/TokenPurchaseOptions";
 import { Coins, Film } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { getUserVideos } from "@/lib/video-queries"; // Use our query function
-import type { Video as DbVideo } from "@/lib/types"; // Renamed to DbVideo to avoid confusion
-import { Skeleton } from "@/components/ui/skeleton"; // For loading state
+import { getUserVideos } from "@/lib/video-queries"; 
+import type { Video as DbVideo } from "@/lib/types"; 
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Category } from "@/lib/data"; // Import Category type
+import { categories } from "@/lib/data"; // Import categories array
 
-// Define the type expected by VideoCard, based on inference and common patterns (like src/lib/data.ts's Video type)
+// Define the type expected by VideoCard
 interface VideoCardVideo {
   id: string;
   title: string;
   url: string;
   thumbnail: string;
   userId: string;
-  category: string; // Assuming VideoCard can handle string for category
+  category: Category; // Changed from string to Category
   likes: number;
   createdAt: string;
 }
@@ -37,7 +39,7 @@ const ProfilePage = () => {
       if (!user?.id) return Promise.resolve([]);
       return getUserVideos(user.id);
     },
-    enabled: !!user?.id, // Only run query if user.id is available
+    enabled: !!user?.id,
   });
 
   useEffect(() => {
@@ -177,11 +179,13 @@ const ProfilePage = () => {
                       id: dbVideo.id,
                       title: dbVideo.title,
                       url: dbVideo.video_url,
-                      thumbnail: dbVideo.thumbnail_url || '/placeholder.svg', // Provide a fallback
+                      thumbnail: dbVideo.thumbnail_url || '/placeholder.svg', 
                       userId: dbVideo.user_id,
-                      category: dbVideo.category || 'General', // Provide a fallback
+                      category: (dbVideo.category && categories.includes(dbVideo.category as Category)) 
+                                ? dbVideo.category as Category 
+                                : categories[0], // Default to first category if invalid or null
                       likes: 0, // Default 'likes' as it's not in DbVideo
-                      createdAt: dbVideo.created_at, // Map created_at to createdAt
+                      createdAt: dbVideo.created_at,
                     };
                     return <VideoCard key={dbVideo.id} video={cardVideo} />;
                   })}
