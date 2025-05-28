@@ -3,13 +3,16 @@ import { useState, useEffect } from "react";
 import { Category, getActiveBattles, Battle, getBattlesByCategory } from "@/lib/data";
 import NavBar from "@/components/NavBar";
 import AdSenseUnit from "@/components/AdSenseUnit";
+import TokenCTA from "@/components/TokenCTA";
 import HeroSection from "@/components/page-specific/index/HeroSection";
 import SlumericanCornerSection from "@/components/page-specific/index/SlumericanCornerSection";
 import TodaysBattlesSection from "@/components/page-specific/index/TodaysBattlesSection";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ADS_CLIENT_ID = "ca-pub-5650237599652350";
 
 const Index = () => {
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [activeBattles, setActiveBattles] = useState<Battle[]>([]);
   const [slumericanBattles, setSlumericanBattles] = useState<Battle[]>([]);
@@ -61,6 +64,8 @@ const Index = () => {
         <main className="flex-1 w-full md:w-1/2 lg:w-3/5 xl:w-2/3 px-4 md:px-0">
           <HeroSection />
           
+          {user && <TokenCTA />}
+
           <SlumericanCornerSection battles={slumericanBattles} />
 
           {/* Multiplex Ad */}
@@ -124,4 +129,3 @@ const Index = () => {
 };
 
 export default Index;
-
