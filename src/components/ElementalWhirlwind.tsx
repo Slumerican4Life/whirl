@@ -5,7 +5,7 @@ const ElementalWhirlwind: React.FC = () => {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
       {/* Ice Element - Blue/White swirl */}
-      <div className="absolute w-32 h-32 rounded-full opacity-20 animate-spin-slow ice-element"
+      <div className="absolute w-32 h-32 rounded-full opacity-20 ice-element"
            style={{
              background: 'radial-gradient(circle, rgba(173,216,230,0.8) 0%, rgba(135,206,235,0.4) 50%, transparent 100%)',
              animation: 'elementalSweep 15s linear infinite, pulse 3s ease-in-out infinite',
@@ -44,8 +44,8 @@ const ElementalWhirlwind: React.FC = () => {
         <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-400/40 to-cyan-600/40 animate-pulse"></div>
       </div>
 
-      {/* Electricity Element - Yellow/Purple swirl */}
-      <div className="absolute w-38 h-38 rounded-full opacity-30 electricity-element"
+      {/* Electricity Element - Yellow/Purple swirl - FIXED SIZING */}
+      <div className="absolute w-40 h-40 rounded-full opacity-30 electricity-element"
            style={{
              background: 'radial-gradient(circle, rgba(255,255,0,0.9) 0%, rgba(138,43,226,0.5) 50%, transparent 100%)',
              animation: 'elementalSweep 10s linear infinite, electric 1.5s ease-in-out infinite',
@@ -54,9 +54,9 @@ const ElementalWhirlwind: React.FC = () => {
         <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-400/50 to-purple-600/50 animate-pulse"></div>
       </div>
 
-      {/* Central whirlwind vortex */}
+      {/* Central whirlwind vortex - FIXED COLORS */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 opacity-10">
-        <div className="w-full h-full rounded-full bg-gradient-to-br from-whirl-purple/40 to-whirl-pink/40 animate-spin"></div>
+        <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-500/40 to-pink-500/40 animate-spin"></div>
       </div>
     </div>
   );
