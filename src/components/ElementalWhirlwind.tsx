@@ -52,8 +52,8 @@ const ElementalWhirlwind: React.FC = () => {
       boxShadow: isBoosted ? '0 0 30px rgba(139, 69, 19, 0.6), 0 0 50px rgba(34, 139, 34, 0.4)' : 'none',
       transition: 'filter 0.3s ease, box-shadow 0.3s ease',
       cursor: 'pointer',
-      touchAction: 'manipulation', // Improved mobile touch
-      userSelect: 'none' // Prevent text selection on mobile
+      touchAction: 'manipulation' as const,
+      userSelect: 'none' as const
     };
   };
 
