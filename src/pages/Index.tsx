@@ -4,6 +4,7 @@ import { Category, getActiveBattles, Battle, getBattlesByCategory } from "@/lib/
 import NavBar from "@/components/NavBar";
 import AdSenseUnit from "@/components/AdSenseUnit";
 import TokenCTA from "@/components/TokenCTA";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import HeroSection from "@/components/page-specific/index/HeroSection";
 import SlumericanCornerSection from "@/components/page-specific/index/SlumericanCornerSection";
 import TodaysBattlesSection from "@/components/page-specific/index/TodaysBattlesSection";
@@ -12,22 +13,41 @@ import { useAuth } from "@/contexts/AuthContext";
 const ADS_CLIENT_ID = "ca-pub-5650237599652350";
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [activeBattles, setActiveBattles] = useState<Battle[]>([]);
   const [slumericanBattles, setSlumericanBattles] = useState<Battle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const allActiveBattles = getActiveBattles();
-    
-    if (selectedCategory !== 'All') {
-      setActiveBattles(allActiveBattles.filter(battle => battle.category === selectedCategory));
-    } else {
-      setActiveBattles(allActiveBattles);
-    }
+    const loadData = () => {
+      try {
+        const allActiveBattles = getActiveBattles();
+        
+        if (selectedCategory !== 'All') {
+          setActiveBattles(allActiveBattles.filter(battle => battle.category === selectedCategory));
+        } else {
+          setActiveBattles(allActiveBattles);
+        }
 
-    setSlumericanBattles(getBattlesByCategory('Slumerican').filter(battle => battle.status === 'active'));
+        setSlumericanBattles(getBattlesByCategory('Slumerican').filter(battle => battle.status === 'active'));
+      } catch (error) {
+        console.error('Error loading battles:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, [selectedCategory]);
+
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen swirl-bg flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg text-white">
@@ -40,7 +60,7 @@ const Index = () => {
           slot="6714233499"
           format="auto"
           responsive="true"
-          comment="ww-homepage-index-header-banner"
+          comment="slumbucket-homepage-header-banner"
           className="min-h-[50px] md:min-h-[90px]"
         />
       </div>
@@ -54,7 +74,7 @@ const Index = () => {
               slot="7994098522"
               format="auto"
               responsive="true"
-              comment="ww-homepage-index-left-sidebar"
+              comment="slumbucket-homepage-left-sidebar"
               className="min-h-[250px]"
             />
           </div>
@@ -74,7 +94,7 @@ const Index = () => {
               client={ADS_CLIENT_ID}
               slot="8238475251"
               format="autorelaxed"
-              comment="ww-homeppage-index-multiplex"
+              comment="slumbucket-homepage-multiplex"
               className="min-h-[250px]"
             />
           </section>
@@ -86,7 +106,7 @@ const Index = () => {
               slot="8716971498"
               format="fluid"
               layout="in-article"
-              comment="ww-homepage-index-mobile-content"
+              comment="slumbucket-homepage-mobile-content"
               className="min-h-[200px]"
             />
           </div>
@@ -106,7 +126,7 @@ const Index = () => {
               slot="8430046943"
               format="auto"
               responsive="true"
-              comment="ww-homepage-index-right-sidebar"
+              comment="slumbucket-homepage-right-sidebar"
               className="min-h-[250px]"
             />
           </div>
@@ -120,7 +140,7 @@ const Index = () => {
           slot="5424609655"
           format="auto"
           responsive="true"
-          comment="ww-homepage-index-footer-banner"
+          comment="slumbucket-homepage-footer-banner"
           className="min-h-[50px] md:min-h-[90px]"
         />
       </div>
