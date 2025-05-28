@@ -55,8 +55,7 @@ const ElementalWhirlwind: React.FC = () => {
         className="absolute w-32 h-32 rounded-full opacity-20 ice-element pointer-events-auto"
         style={getElementStyle('ice', {
           background: 'radial-gradient(circle, rgba(173,216,230,0.8) 0%, rgba(135,206,235,0.4) 50%, transparent 100%)',
-          animation: `${getElementAnimation('ice', 'elementalSweep 15s linear infinite')}, pulse 3s ease-in-out infinite`,
-          animationDelay: '0s'
+          animation: `${getElementAnimation('ice', 'iceSweep 15s linear infinite')}, pulse 3s ease-in-out infinite`
         })}
         onMouseDown={() => handleElementTouch('ice')}
         onTouchStart={() => handleElementTouch('ice')}
@@ -72,8 +71,7 @@ const ElementalWhirlwind: React.FC = () => {
         className="absolute w-40 h-40 rounded-full opacity-25 fire-element pointer-events-auto"
         style={getElementStyle('fire', {
           background: 'radial-gradient(circle, rgba(255,69,0,0.8) 0%, rgba(255,140,0,0.4) 50%, transparent 100%)',
-          animation: `${getElementAnimation('fire', 'elementalSweep 12s linear infinite')}, flicker 2s ease-in-out infinite`,
-          animationDelay: '3s'
+          animation: `${getElementAnimation('fire', 'fireSweep 12s linear infinite')}, flicker 2s ease-in-out infinite`
         })}
         onMouseDown={() => handleElementTouch('fire')}
         onTouchStart={() => handleElementTouch('fire')}
@@ -89,8 +87,7 @@ const ElementalWhirlwind: React.FC = () => {
         className="absolute w-36 h-36 rounded-full opacity-20 earth-element pointer-events-auto"
         style={getElementStyle('earth', {
           background: 'radial-gradient(circle, rgba(139,69,19,0.8) 0%, rgba(34,139,34,0.4) 50%, transparent 100%)',
-          animation: `${getElementAnimation('earth', 'elementalSweep 18s linear infinite')}, earthPulse 4s ease-in-out infinite`,
-          animationDelay: '6s'
+          animation: `${getElementAnimation('earth', 'earthSweep 18s linear infinite')}, earthPulse 4s ease-in-out infinite`
         })}
         onMouseDown={() => handleElementTouch('earth')}
         onTouchStart={() => handleElementTouch('earth')}
@@ -106,8 +103,7 @@ const ElementalWhirlwind: React.FC = () => {
         className="absolute w-44 h-44 rounded-full opacity-20 water-element pointer-events-auto"
         style={getElementStyle('water', {
           background: 'radial-gradient(circle, rgba(0,191,255,0.8) 0%, rgba(30,144,255,0.4) 50%, transparent 100%)',
-          animation: `${getElementAnimation('water', 'elementalSweep 14s linear infinite')}, wave 3.5s ease-in-out infinite`,
-          animationDelay: '9s'
+          animation: `${getElementAnimation('water', 'waterSweep 14s linear infinite')}, wave 3.5s ease-in-out infinite`
         })}
         onMouseDown={() => handleElementTouch('water')}
         onTouchStart={() => handleElementTouch('water')}
@@ -123,8 +119,7 @@ const ElementalWhirlwind: React.FC = () => {
         className="absolute w-40 h-40 rounded-full opacity-30 electricity-element pointer-events-auto"
         style={getElementStyle('electricity', {
           background: 'radial-gradient(circle, rgba(255,255,0,0.9) 0%, rgba(138,43,226,0.5) 50%, transparent 100%)',
-          animation: `${getElementAnimation('electricity', 'elementalSweep 10s linear infinite')}, electric 1.5s ease-in-out infinite`,
-          animationDelay: '12s'
+          animation: `${getElementAnimation('electricity', 'electricitySweep 10s linear infinite')}, electric 1.5s ease-in-out infinite`
         })}
         onMouseDown={() => handleElementTouch('electricity')}
         onTouchStart={() => handleElementTouch('electricity')}
