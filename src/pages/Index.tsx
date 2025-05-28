@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Category, getActiveBattles, Battle, getBattlesByCategory } from "@/lib/data";
 import NavBar from "@/components/NavBar";
@@ -18,10 +19,14 @@ const Index = () => {
   const [activeBattles, setActiveBattles] = useState<Battle[]>([]);
   const [slumericanBattles, setSlumericanBattles] = useState<Battle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       try {
+        // Simulate minimum loading time for better UX
+        const startTime = Date.now();
+        
         const allActiveBattles = getActiveBattles();
         
         if (selectedCategory !== 'All') {
@@ -31,8 +36,19 @@ const Index = () => {
         }
 
         setSlumericanBattles(getBattlesByCategory('Slumerican').filter(battle => battle.status === 'active'));
+        
+        // Ensure minimum loading time for smooth experience
+        const elapsedTime = Date.now() - startTime;
+        const minLoadTime = 800;
+        
+        if (elapsedTime < minLoadTime) {
+          await new Promise(resolve => setTimeout(resolve, minLoadTime - elapsedTime));
+        }
+        
+        setDataLoaded(true);
       } catch (error) {
         console.error('Error loading battles:', error);
+        setDataLoaded(true); // Still show content even if there's an error
       } finally {
         setIsLoading(false);
       }
@@ -44,7 +60,12 @@ const Index = () => {
   if (loading || isLoading) {
     return (
       <div className="min-h-screen swirl-bg flex items-center justify-center">
-        <LoadingSpinner />
+        <div className="text-center">
+          <LoadingSpinner />
+          <p className="text-white mt-4 text-lg font-medium animate-pulse">
+            Loading epic battles...
+          </p>
+        </div>
       </div>
     );
   }
@@ -85,40 +106,42 @@ const Index = () => {
 
         {/* Main Content Area */}
         <main className="flex-1 w-full md:w-1/2 lg:w-3/5 xl:w-2/3 px-4 md:px-0">
-          <HeroSection />
-          
-          {user && <TokenCTA />}
+          <div className={`transition-opacity duration-500 ${dataLoaded ? 'opacity-100' : 'opacity-0'}`}>
+            <HeroSection />
+            
+            {user && <TokenCTA />}
 
-          <SlumericanCornerSection battles={slumericanBattles} />
+            <SlumericanCornerSection battles={slumericanBattles} />
 
-          {/* Multiplex Ad */}
-          <section className="my-8 text-center">
-             <AdSenseUnit
-              client={ADS_CLIENT_ID}
-              slot="8238475251"
-              format="autorelaxed"
-              comment="slumbucket-homepage-multiplex"
-              className="min-h-[250px]"
-            />
-          </section>
+            {/* Multiplex Ad */}
+            <section className="my-8 text-center">
+              <AdSenseUnit
+                client={ADS_CLIENT_ID}
+                slot="8238475251"
+                format="autorelaxed"
+                comment="slumbucket-homepage-multiplex"
+                className="min-h-[250px]"
+              />
+            </section>
 
-          {/* Mobile In-Content Ad (Mobile Only) */}
-          <div className="md:hidden my-4 text-center">
-            <AdSenseUnit
-              client={ADS_CLIENT_ID}
-              slot="8716971498"
-              format="fluid"
-              layout="in-article"
-              comment="slumbucket-homepage-mobile-content"
-              className="min-h-[200px]"
+            {/* Mobile In-Content Ad (Mobile Only) */}
+            <div className="md:hidden my-4 text-center">
+              <AdSenseUnit
+                client={ADS_CLIENT_ID}
+                slot="8716971498"
+                format="fluid"
+                layout="in-article"
+                comment="slumbucket-homepage-mobile-content"
+                className="min-h-[200px]"
+              />
+            </div>
+
+            <TodaysBattlesSection 
+              activeBattles={activeBattles}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
             />
           </div>
-
-          <TodaysBattlesSection 
-            activeBattles={activeBattles}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
         </main>
 
         {/* Right Sidebar Ad (Desktop Only) */}
