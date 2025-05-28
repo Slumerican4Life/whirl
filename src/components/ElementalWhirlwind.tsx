@@ -19,6 +19,13 @@ const ElementalWhirlwind: React.FC = () => {
   });
 
   const handleElementTouch = useCallback((elementType: keyof ElementBoost) => {
+    console.log(`${elementType} element activated!`);
+    
+    // Add haptic feedback for mobile
+    if ('vibrate' in navigator) {
+      navigator.vibrate(100);
+    }
+    
     setBoostedElements(prev => ({ ...prev, [elementType]: true }));
     
     // Reset boost after 6 seconds
@@ -50,18 +57,21 @@ const ElementalWhirlwind: React.FC = () => {
       ...baseStyle,
       filter: isBoosted ? 'brightness(1.8) blur(1px)' : 'brightness(1)',
       boxShadow: isBoosted ? '0 0 30px rgba(139, 69, 19, 0.6), 0 0 50px rgba(34, 139, 34, 0.4)' : 'none',
-      transition: 'filter 0.3s ease, box-shadow 0.3s ease',
+      transition: 'filter 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease',
       cursor: 'pointer',
       touchAction: 'manipulation' as const,
-      userSelect: 'none' as const
+      userSelect: 'none' as const,
+      WebkitTapHighlightColor: 'transparent',
+      minWidth: '44px',
+      minHeight: '44px'
     };
   };
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-10">
       {/* Ice Element - Blue/White swirl */}
       <div 
-        className="absolute w-32 h-32 rounded-full opacity-20 ice-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-cyan-400 active:scale-95 transition-transform"
+        className="absolute w-32 h-32 rounded-full opacity-20 ice-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-cyan-400 active:scale-110 transition-transform"
         style={getElementStyle('ice', {
           background: 'radial-gradient(circle, rgba(173,216,230,0.8) 0%, rgba(135,206,235,0.4) 50%, transparent 100%)',
           animation: `${getElementAnimation('ice', 'iceSweep 15s linear infinite')}, pulse 3s ease-in-out infinite`
@@ -69,9 +79,10 @@ const ElementalWhirlwind: React.FC = () => {
         tabIndex={0}
         role="button"
         aria-label="Ice element - Click or press Enter to boost"
-        onMouseDown={() => handleElementTouch('ice')}
+        onClick={() => handleElementTouch('ice')}
+        onPointerDown={() => handleElementTouch('ice')}
         onTouchStart={(e) => {
-          e.preventDefault();
+          e.stopPropagation();
           handleElementTouch('ice');
         }}
         onKeyDown={(e) => handleKeyDown(e, 'ice')}
@@ -84,7 +95,7 @@ const ElementalWhirlwind: React.FC = () => {
 
       {/* Fire Element - Red/Orange swirl */}
       <div 
-        className="absolute w-40 h-40 rounded-full opacity-25 fire-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-red-400 active:scale-95 transition-transform"
+        className="absolute w-40 h-40 rounded-full opacity-25 fire-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-red-400 active:scale-110 transition-transform"
         style={getElementStyle('fire', {
           background: 'radial-gradient(circle, rgba(255,69,0,0.8) 0%, rgba(255,140,0,0.4) 50%, transparent 100%)',
           animation: `${getElementAnimation('fire', 'fireSweep 12s linear infinite')}, flicker 2s ease-in-out infinite`
@@ -92,9 +103,10 @@ const ElementalWhirlwind: React.FC = () => {
         tabIndex={0}
         role="button"
         aria-label="Fire element - Click or press Enter to boost"
-        onMouseDown={() => handleElementTouch('fire')}
+        onClick={() => handleElementTouch('fire')}
+        onPointerDown={() => handleElementTouch('fire')}
         onTouchStart={(e) => {
-          e.preventDefault();
+          e.stopPropagation();
           handleElementTouch('fire');
         }}
         onKeyDown={(e) => handleKeyDown(e, 'fire')}
@@ -107,7 +119,7 @@ const ElementalWhirlwind: React.FC = () => {
 
       {/* Earth Element - Brown/Green swirl */}
       <div 
-        className="absolute w-36 h-36 rounded-full opacity-20 earth-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-green-400 active:scale-95 transition-transform"
+        className="absolute w-36 h-36 rounded-full opacity-20 earth-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-green-400 active:scale-110 transition-transform"
         style={getElementStyle('earth', {
           background: 'radial-gradient(circle, rgba(139,69,19,0.8) 0%, rgba(34,139,34,0.4) 50%, transparent 100%)',
           animation: `${getElementAnimation('earth', 'earthSweep 18s linear infinite')}, earthPulse 4s ease-in-out infinite`
@@ -115,9 +127,10 @@ const ElementalWhirlwind: React.FC = () => {
         tabIndex={0}
         role="button"
         aria-label="Earth element - Click or press Enter to boost"
-        onMouseDown={() => handleElementTouch('earth')}
+        onClick={() => handleElementTouch('earth')}
+        onPointerDown={() => handleElementTouch('earth')}
         onTouchStart={(e) => {
-          e.preventDefault();
+          e.stopPropagation();
           handleElementTouch('earth');
         }}
         onKeyDown={(e) => handleKeyDown(e, 'earth')}
@@ -130,7 +143,7 @@ const ElementalWhirlwind: React.FC = () => {
 
       {/* Water Element - Blue swirl */}
       <div 
-        className="absolute w-44 h-44 rounded-full opacity-20 water-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-blue-400 active:scale-95 transition-transform"
+        className="absolute w-44 h-44 rounded-full opacity-20 water-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-blue-400 active:scale-110 transition-transform"
         style={getElementStyle('water', {
           background: 'radial-gradient(circle, rgba(0,191,255,0.8) 0%, rgba(30,144,255,0.4) 50%, transparent 100%)',
           animation: `${getElementAnimation('water', 'waterSweep 14s linear infinite')}, wave 3.5s ease-in-out infinite`
@@ -138,9 +151,10 @@ const ElementalWhirlwind: React.FC = () => {
         tabIndex={0}
         role="button"
         aria-label="Water element - Click or press Enter to boost"
-        onMouseDown={() => handleElementTouch('water')}
+        onClick={() => handleElementTouch('water')}
+        onPointerDown={() => handleElementTouch('water')}
         onTouchStart={(e) => {
-          e.preventDefault();
+          e.stopPropagation();
           handleElementTouch('water');
         }}
         onKeyDown={(e) => handleKeyDown(e, 'water')}
@@ -153,7 +167,7 @@ const ElementalWhirlwind: React.FC = () => {
 
       {/* Electricity Element - Yellow/Purple swirl */}
       <div 
-        className="absolute w-40 h-40 rounded-full opacity-30 electricity-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-yellow-400 active:scale-95 transition-transform"
+        className="absolute w-40 h-40 rounded-full opacity-30 electricity-element pointer-events-auto focus:outline-none focus:ring-2 focus:ring-yellow-400 active:scale-110 transition-transform"
         style={getElementStyle('electricity', {
           background: 'radial-gradient(circle, rgba(255,255,0,0.9) 0%, rgba(138,43,226,0.5) 50%, transparent 100%)',
           animation: `${getElementAnimation('electricity', 'electricitySweep 10s linear infinite')}, electric 1.5s ease-in-out infinite`
@@ -161,9 +175,10 @@ const ElementalWhirlwind: React.FC = () => {
         tabIndex={0}
         role="button"
         aria-label="Electricity element - Click or press Enter to boost"
-        onMouseDown={() => handleElementTouch('electricity')}
+        onClick={() => handleElementTouch('electricity')}
+        onPointerDown={() => handleElementTouch('electricity')}
         onTouchStart={(e) => {
-          e.preventDefault();
+          e.stopPropagation();
           handleElementTouch('electricity');
         }}
         onKeyDown={(e) => handleKeyDown(e, 'electricity')}
