@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 
 interface ElementBoost {
@@ -154,11 +155,6 @@ const ElementalWhirlwind: React.FC = () => {
         {boostedElements.electricity && (
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-500/70 to-purple-700/70 animate-pulse"></div>
         )}
-      </div>
-
-      {/* Central whirlwind vortex */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 opacity-10">
-        <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-500/40 to-pink-500/40 animate-spin"></div>
       </div>
     </div>
   );
