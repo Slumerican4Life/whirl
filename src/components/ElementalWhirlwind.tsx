@@ -41,9 +41,9 @@ const ElementalWhirlwind: React.FC = () => {
     const isBoosted = boostedElements[elementType];
     return {
       ...baseStyle,
-      transform: isBoosted ? 'scale(1.2)' : 'scale(1)',
-      filter: isBoosted ? 'brightness(1.5) blur(1px)' : 'brightness(1)',
-      transition: 'transform 0.3s ease, filter 0.3s ease',
+      filter: isBoosted ? 'brightness(1.8) blur(1px)' : 'brightness(1)',
+      boxShadow: isBoosted ? '0 0 30px rgba(139, 69, 19, 0.6), 0 0 50px rgba(34, 139, 34, 0.4)' : 'none',
+      transition: 'filter 0.3s ease, box-shadow 0.3s ease',
       cursor: 'pointer'
     };
   };
