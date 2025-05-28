@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Category, getActiveBattles, Battle, getBattlesByCategory } from "@/lib/data";
 import NavBar from "@/components/NavBar";
@@ -8,6 +7,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import HeroSection from "@/components/page-specific/index/HeroSection";
 import SlumericanCornerSection from "@/components/page-specific/index/SlumericanCornerSection";
 import TodaysBattlesSection from "@/components/page-specific/index/TodaysBattlesSection";
+import ElementalWhirlwind from "@/components/ElementalWhirlwind";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ADS_CLIENT_ID = "ca-pub-5650237599652350";
@@ -50,11 +50,14 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg text-white">
+    <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg text-white relative">
+      {/* Animated Elemental Whirlwind Background */}
+      <ElementalWhirlwind />
+      
       <NavBar />
       
       {/* Header Ad Banner */}
-      <div className="container mx-auto px-4 py-2 text-center">
+      <div className="container mx-auto px-4 py-2 text-center relative z-10">
         <AdSenseUnit
           client={ADS_CLIENT_ID}
           slot="6714233499"
@@ -65,7 +68,7 @@ const Index = () => {
         />
       </div>
 
-      <div className="container mx-auto px-0 md:px-4 py-6 flex flex-col md:flex-row md:space-x-4">
+      <div className="container mx-auto px-0 md:px-4 py-6 flex flex-col md:flex-row md:space-x-4 relative z-10">
         {/* Left Sidebar Ad (Desktop Only) */}
         <aside className="hidden md:block w-full md:w-1/4 lg:w-1/5 xl:w-1/6 p-2 md:p-4">
           <div className="sticky top-20">
@@ -134,7 +137,7 @@ const Index = () => {
       </div>
       
       {/* Footer Ad Banner */}
-      <div className="container mx-auto px-4 py-2 mt-8 text-center">
+      <div className="container mx-auto px-4 py-2 mt-8 text-center relative z-10">
         <AdSenseUnit
           client={ADS_CLIENT_ID}
           slot="5424609655"
