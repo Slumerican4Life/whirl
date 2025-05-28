@@ -1,0 +1,234 @@
+
+/* Elemental Whirlwind Animations */
+@keyframes iceSweep {
+  0% {
+    transform: translate(85vw, 5vh) rotate(0deg) scale(0.8);
+  }
+  25% {
+    transform: translate(85vw, 85vh) rotate(90deg) scale(1.2);
+  }
+  50% {
+    transform: translate(5vw, 85vh) rotate(180deg) scale(0.9);
+  }
+  75% {
+    transform: translate(5vw, 5vh) rotate(270deg) scale(1.1);
+  }
+  100% {
+    transform: translate(85vw, 5vh) rotate(360deg) scale(0.8);
+  }
+}
+
+@keyframes fireSweep {
+  0% {
+    transform: translate(85vw, 45vh) rotate(0deg) scale(0.8);
+  }
+  25% {
+    transform: translate(45vw, 85vh) rotate(90deg) scale(1.2);
+  }
+  50% {
+    transform: translate(5vw, 45vh) rotate(180deg) scale(0.9);
+  }
+  75% {
+    transform: translate(45vw, 5vh) rotate(270deg) scale(1.1);
+  }
+  100% {
+    transform: translate(85vw, 45vh) rotate(360deg) scale(0.8);
+  }
+}
+
+@keyframes earthSweep {
+  0% {
+    transform: translate(45vw, 85vh) rotate(0deg) scale(0.8);
+  }
+  25% {
+    transform: translate(5vw, 45vh) rotate(90deg) scale(1.2);
+  }
+  50% {
+    transform: translate(45vw, 5vh) rotate(180deg) scale(0.9);
+  }
+  75% {
+    transform: translate(85vw, 45vh) rotate(270deg) scale(1.1);
+  }
+  100% {
+    transform: translate(45vw, 85vh) rotate(360deg) scale(0.8);
+  }
+}
+
+@keyframes waterSweep {
+  0% {
+    transform: translate(5vw, 80vh) rotate(0deg) scale(0.8);
+  }
+  25% {
+    transform: translate(5vw, 5vh) rotate(90deg) scale(1.2);
+  }
+  50% {
+    transform: translate(85vw, 10vh) rotate(180deg) scale(0.9);
+  }
+  75% {
+    transform: translate(80vw, 80vh) rotate(270deg) scale(1.1);
+  }
+  100% {
+    transform: translate(5vw, 80vh) rotate(360deg) scale(0.8);
+  }
+}
+
+@keyframes electricitySweep {
+  0% {
+    transform: translate(5vw, 45vh) rotate(0deg) scale(0.8);
+  }
+  25% {
+    transform: translate(45vw, 5vh) rotate(90deg) scale(1.2);
+  }
+  50% {
+    transform: translate(85vw, 45vh) rotate(180deg) scale(0.9);
+  }
+  75% {
+    transform: translate(45vw, 85vh) rotate(270deg) scale(1.1);
+  }
+  100% {
+    transform: translate(5vw, 45vh) rotate(360deg) scale(0.8);
+  }
+}
+
+@keyframes flicker {
+  0%, 100% {
+    opacity: 0.25;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.4;
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes earthPulse {
+  0%, 100% {
+    opacity: 0.2;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.35;
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes wave {
+  0%, 100% {
+    border-radius: 50%;
+    opacity: 0.2;
+  }
+  33% {
+    border-radius: 60% 40% 30% 70%;
+    opacity: 0.3;
+  }
+  66% {
+    border-radius: 40% 60% 70% 30%;
+    opacity: 0.25;
+  }
+}
+
+@keyframes electric {
+  0%, 100% {
+    opacity: 0.3;
+    filter: brightness(1) blur(0px);
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+  }
+  50% {
+    opacity: 0.5;
+    filter: brightness(1.5) blur(1px);
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.6), 0 0 30px rgba(138, 43, 226, 0.4);
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  @keyframes iceSweep {
+    0% {
+      transform: translate(75vw, 10vh) rotate(0deg) scale(0.6);
+    }
+    25% {
+      transform: translate(75vw, 80vh) rotate(90deg) scale(0.9);
+    }
+    50% {
+      transform: translate(10vw, 80vh) rotate(180deg) scale(0.7);
+    }
+    75% {
+      transform: translate(10vw, 10vh) rotate(270deg) scale(0.8);
+    }
+    100% {
+      transform: translate(75vw, 10vh) rotate(360deg) scale(0.6);
+    }
+  }
+
+  @keyframes fireSweep {
+    0% {
+      transform: translate(75vw, 50vh) rotate(0deg) scale(0.6);
+    }
+    25% {
+      transform: translate(50vw, 80vh) rotate(90deg) scale(0.9);
+    }
+    50% {
+      transform: translate(10vw, 50vh) rotate(180deg) scale(0.7);
+    }
+    75% {
+      transform: translate(50vw, 10vh) rotate(270deg) scale(0.8);
+    }
+    100% {
+      transform: translate(75vw, 50vh) rotate(360deg) scale(0.6);
+    }
+  }
+
+  @keyframes earthSweep {
+    0% {
+      transform: translate(50vw, 80vh) rotate(0deg) scale(0.6);
+    }
+    25% {
+      transform: translate(10vw, 50vh) rotate(90deg) scale(0.9);
+    }
+    50% {
+      transform: translate(50vw, 10vh) rotate(180deg) scale(0.7);
+    }
+    75% {
+      transform: translate(75vw, 50vh) rotate(270deg) scale(0.8);
+    }
+    100% {
+      transform: translate(50vw, 80vh) rotate(360deg) scale(0.6);
+    }
+  }
+
+  @keyframes waterSweep {
+    0% {
+      transform: translate(10vw, 75vh) rotate(0deg) scale(0.6);
+    }
+    25% {
+      transform: translate(10vw, 15vh) rotate(90deg) scale(0.9);
+    }
+    50% {
+      transform: translate(75vw, 15vh) rotate(180deg) scale(0.7);
+    }
+    75% {
+      transform: translate(75vw, 75vh) rotate(270deg) scale(0.8);
+    }
+    100% {
+      transform: translate(10vw, 75vh) rotate(360deg) scale(0.6);
+    }
+  }
+
+  @keyframes electricitySweep {
+    0% {
+      transform: translate(10vw, 50vh) rotate(0deg) scale(0.6);
+    }
+    25% {
+      transform: translate(50vw, 15vh) rotate(90deg) scale(0.9);
+    }
+    50% {
+      transform: translate(75vw, 50vh) rotate(180deg) scale(0.7);
+    }
+    75% {
+      transform: translate(50vw, 80vh) rotate(270deg) scale(0.8);
+    }
+    100% {
+      transform: translate(10vw, 50vh) rotate(360deg) scale(0.6);
+    }
+  }
+}
