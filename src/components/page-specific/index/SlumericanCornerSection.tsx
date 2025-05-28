@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Battle } from '@/lib/data';
 import BattleCard from '@/components/BattleCard';
 import { Button } from '@/components/ui/button';
+import { Crown, Flame } from 'lucide-react';
 
 interface SlumericanCornerSectionProps {
   battles: Battle[];
@@ -15,32 +16,60 @@ const SlumericanCornerSection: React.FC<SlumericanCornerSectionProps> = ({ battl
   }
 
   return (
-    <section className="mb-12 p-6 rounded-lg bg-gradient-to-r from-black to-whirl-dark border border-whirl-red">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-white">
-          <span className="bg-gradient-to-r from-whirl-red via-whirl-orange to-whirl-purple text-transparent bg-clip-text">
-            Slumerican Corner
-          </span>
-        </h2>
-        <Link to="/slumerican">
-          <Button variant="outline" className="border-whirl-red text-white hover:bg-whirl-red">
-            Explore Slumerican
-          </Button>
-        </Link>
-      </div>
+    <section className="mb-16 relative">
+      {/* Background effects */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black via-whirl-slumerican-black to-black rounded-3xl opacity-80"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-whirl-slumerican-red/20 via-transparent to-whirl-slumerican-gold/20 rounded-3xl"></div>
       
-      <p className="text-gray-300 mb-6">
-        Dedicated to Yelawolf and the Slumerican culture. Raw, authentic, and straight from the streets.
-      </p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {battles.map((battle) => (
-          <BattleCard key={battle.id} battle={battle} />
-        ))}
+      {/* Content */}
+      <div className="relative glass-dark p-8 rounded-3xl border border-whirl-slumerican-red/30 shadow-2xl">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-6">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="bg-gradient-to-br from-whirl-slumerican-red to-whirl-slumerican-gold p-3 rounded-2xl">
+                <Crown className="w-8 h-8 text-white" />
+              </div>
+              <Flame className="absolute -top-1 -right-1 w-5 h-5 text-orange-400 animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-4xl font-black text-white mb-2">
+                <span className="bg-gradient-to-r from-whirl-slumerican-red via-whirl-slumerican-gold to-white text-transparent bg-clip-text">
+                  SLUMERICAN CORNER
+                </span>
+              </h2>
+              <div className="w-20 h-1 bg-gradient-to-r from-whirl-slumerican-red to-whirl-slumerican-gold rounded-full"></div>
+            </div>
+          </div>
+          
+          <Link to="/slumerican">
+            <Button className="bg-gradient-to-r from-whirl-slumerican-red to-whirl-slumerican-gold text-white hover:from-whirl-slumerican-gold hover:to-whirl-slumerican-red font-bold px-6 py-3 rounded-xl transition-all hover:scale-105 shadow-lg">
+              <Flame className="w-4 h-4 mr-2" />
+              Explore Slumerican
+            </Button>
+          </Link>
+        </div>
+        
+        {/* Description */}
+        <div className="glass rounded-2xl p-6 mb-8 border border-white/10">
+          <p className="text-gray-200 text-lg leading-relaxed">
+            Dedicated to <span className="text-whirl-slumerican-gold font-bold">Yelawolf</span> and the 
+            <span className="text-whirl-slumerican-red font-bold"> Slumerican culture</span>. 
+            Raw, authentic, and straight from the streets.
+          </p>
+        </div>
+        
+        {/* Battles Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {battles.map((battle) => (
+            <div key={battle.id} className="transform transition-all hover:scale-[1.02]">
+              <BattleCard battle={battle} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
 };
 
 export default SlumericanCornerSection;
-
