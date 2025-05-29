@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { categories } from "@/lib/data"; // Ensure categories list is appropriate
+import { categories } from "@/lib/data";
 import { toast } from "sonner";
-import { Upload, Video as VideoIcon } from "lucide-react"; // Renamed Video to VideoIcon to avoid conflict
-import { uploadVideo } from "@/lib/videos"; // Assuming this re-exports the updated uploadVideo
+import { Upload, Video as VideoIcon } from "lucide-react";
+import { uploadVideo } from "@/lib/videos";
 import { useAuth } from "@/contexts/AuthContext";
 
 const VideoUpload = () => {
@@ -48,10 +48,9 @@ const VideoUpload = () => {
     setUploading(true);
     
     try {
-      // Pass title and category to uploadVideo
       await uploadVideo(videoFile, title, category); 
       
-      toast.success("Video uploaded successfully! It will be matched for a battle soon.");
+      toast.success("Video uploaded successfully - FREE! 🎉");
       setTitle("");
       setCategory("");
       setVideoFile(null);
@@ -66,6 +65,12 @@ const VideoUpload = () => {
 
   return (
     <div className="space-y-6">
+      {/* Free Upload Banner */}
+      <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-lg p-4 text-center">
+        <h3 className="text-white font-bold text-lg mb-1">🎉 Upload Videos Completely FREE!</h3>
+        <p className="text-white/90 text-sm">No tokens, no payments, just share your talent!</p>
+      </div>
+
       <div className="rounded-lg border border-dashed border-border p-8 text-center">
         {previewUrl ? (
           <div className="space-y-4">
@@ -92,7 +97,7 @@ const VideoUpload = () => {
             <div className="flex flex-col items-center justify-center">
               <VideoIcon className="h-16 w-16 text-muted-foreground" />
               <p className="mt-2 text-sm text-muted-foreground">
-                Upload a video (max 60 seconds)
+                Upload a video (max 60 seconds) - FREE!
               </p>
             </div>
             <Input
@@ -106,7 +111,7 @@ const VideoUpload = () => {
               <Button variant="outline" type="button" asChild>
                 <span>
                   <Upload className="mr-2 h-4 w-4" />
-                  Select Video
+                  Select Video - FREE!
                 </span>
               </Button>
             </Label>
@@ -122,7 +127,7 @@ const VideoUpload = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter a catchy title"
-            maxLength={100} // Increased max length slightly based on typical DB limits
+            maxLength={100}
           />
         </div>
 
@@ -144,10 +149,10 @@ const VideoUpload = () => {
 
         <Button 
           type="submit" 
-          className="w-full bg-whirl-purple hover:bg-whirl-deep-purple"
+          className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold"
           disabled={!title || !category || !videoFile || uploading}
         >
-          {uploading ? "Uploading..." : "Upload Video"}
+          {uploading ? "Uploading..." : "🚀 Upload Video - FREE!"}
         </Button>
       </form>
     </div>
