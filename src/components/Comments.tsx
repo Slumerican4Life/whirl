@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
-import { ThumbsUp, ThumbsDown, Reply, MoreHorizontal } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Reply, MoreHorizontal, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface Comment {

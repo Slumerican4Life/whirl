@@ -1,3 +1,4 @@
+
 import { faker } from '@faker-js/faker';
 
 export interface Video {
@@ -27,6 +28,8 @@ export interface User {
   id: string;
   username: string;
   avatar: string;
+  wins?: number;
+  badges?: string[];
 }
 
 export type Category =
@@ -34,6 +37,17 @@ export type Category =
   | "Music Video"
   | "Behind the Scenes"
   | "Live Performance";
+
+// Export categories array for components that need it
+export const categories: Category[] = [
+  "Freestyle",
+  "Music Video", 
+  "Behind the Scenes",
+  "Live Performance"
+];
+
+// Export videos array for components that need it
+export const videos = mockVideos;
 
 export const mockBattles: Battle[] = [
   {
@@ -70,26 +84,36 @@ export const mockUsers: User[] = [
     id: "1",
     username: "SlumKing",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
+    wins: 15,
+    badges: ["Champion", "Freestyle King"]
   },
   {
     id: "2",
     username: "BeatMaster",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+    wins: 12,
+    badges: ["Beat Maker"]
   },
   {
     id: "3",
     username: "RhymeQueen",
     avatar: "https://images.unsplash.com/photo-1494790108755-2616b9b6c14e?w=150",
+    wins: 18,
+    badges: ["Lyric Master", "Queen"]
   },
   {
     id: "4",
     username: "FlowState",
     avatar: "https://images.unsplash.com/photo-1531427186611-ecfd6d936e79?w=150",
+    wins: 9,
+    badges: ["Flow Master"]
   },
   {
     id: "5",
     username: "LyricLegend",
     avatar: "https://images.unsplash.com/photo-1500648767791-00d5a4ee9baa?w=150",
+    wins: 21,
+    badges: ["Legend", "Wordsmith"]
   },
 ];
 
@@ -192,4 +216,16 @@ export const getVideosByCategory = (category: Category | "All"): Video[] => {
     return mockVideos;
   }
   return mockVideos.filter((video) => video.category === category);
+};
+
+// Add missing functions that other files are trying to import
+export const getBattlesByCategory = (category: string) => {
+  if (category === "All") {
+    return mockBattles;
+  }
+  return mockBattles.filter((battle) => battle.category === category);
+};
+
+export const getUsersByWins = () => {
+  return [...mockUsers].sort((a, b) => (b.wins || 0) - (a.wins || 0));
 };
