@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Home, Video, Award, User, LogOut, UploadCloud } from "lucide-react"; // Added UploadCloud for consistency if used
+import { Home, Video, Award, User, LogOut, Phone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -46,7 +46,7 @@ const NavBar = () => {
                   <TooltipTrigger asChild>
                     <Link to="/upload">
                       <Button variant="ghost" size="icon">
-                        <Video className="h-5 w-5" /> {/* Assuming Video icon for upload on mobile */}
+                        <Video className="h-5 w-5" />
                       </Button>
                     </Link>
                   </TooltipTrigger>
@@ -68,6 +68,18 @@ const NavBar = () => {
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
+                    <Link to="/contact">
+                      <Button variant="ghost" size="icon">
+                        <Phone className="h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Contact</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <Link to="/profile">
                       <Button variant="ghost" size="icon">
                         <User className="h-5 w-5" />
@@ -80,18 +92,32 @@ const NavBar = () => {
                 </Tooltip>
               </>
             ) : (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link to="/login">
-                    <Button variant="ghost" size="icon">
-                      <User className="h-5 w-5" />
-                    </Button>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Login / Sign Up</p>
-                </TooltipContent>
-              </Tooltip>
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link to="/contact">
+                      <Button variant="ghost" size="icon">
+                        <Phone className="h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Contact</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link to="/login">
+                      <Button variant="ghost" size="icon">
+                        <User className="h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Login / Sign Up</p>
+                  </TooltipContent>
+                </Tooltip>
+              </>
             )}
           </div>
           
@@ -129,6 +155,16 @@ const NavBar = () => {
                     <p>View Top Players</p>
                   </TooltipContent>
                 </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link to="/contact">
+                      <Button variant="ghost">Contact</Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Get Support</p>
+                  </TooltipContent>
+                </Tooltip>
                 <div className="flex items-center space-x-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -163,11 +199,23 @@ const NavBar = () => {
                 </div>
               </>
             ) : (
-              <Link to="/login">
-                <Button className="bg-whirl-purple hover:bg-whirl-deep-purple text-white">
-                  Login
-                </Button>
-              </Link>
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link to="/contact">
+                      <Button variant="ghost">Contact</Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Get Support</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Link to="/login">
+                  <Button className="bg-whirl-purple hover:bg-whirl-deep-purple text-white">
+                    Login
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
         </div>
@@ -177,4 +225,3 @@ const NavBar = () => {
 };
 
 export default NavBar;
-

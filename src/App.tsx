@@ -13,6 +13,7 @@ import BattlePage from "./pages/BattlePage";
 import LeaderboardPage from "./pages/Leaderboard";
 import ProfilePage from "./pages/Profile";
 import SlumericanPage from "./pages/Slumerican";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/slumerican" element={<SlumericanPage />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/payment-success" element={<PaymentSuccessPage />} />

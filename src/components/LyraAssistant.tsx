@@ -106,12 +106,17 @@ const LyraAssistant: React.FC = () => {
     const currentPath = window.location.pathname;
     const relevantArticles = findRelevantArticles(query, currentPath);
 
+    // Check for contact-related queries
+    if (query.toLowerCase().includes('contact') || query.toLowerCase().includes('support') || query.toLowerCase().includes('help')) {
+      return "For additional support or complex issues, you can contact our support team directly at **whirlwin.supp@gmail.com**. We typically respond within 24 hours during business hours.\n\nYou can also visit our Contact page for more information about support options and business hours.";
+    }
+
     if (relevantArticles.length === 0) {
-      return "I couldn't find specific information about that. Here are some things I can help you with:\n\n• How to upload videos\n• Understanding tokens and voting\n• Battle mechanics\n• Leaderboard system\n• Account management\n• Technical troubleshooting\n\nTry asking about any of these topics!";
+      return "I couldn't find specific information about that. Here are some things I can help you with:\n\n• How to upload videos\n• Understanding tokens and voting\n• Battle mechanics\n• Leaderboard system\n• Account management\n• Technical troubleshooting\n\nFor complex issues or additional support, contact us at **whirlwin.supp@gmail.com**";
     }
 
     if (relevantArticles.length === 1) {
-      return relevantArticles[0].content;
+      return relevantArticles[0].content + "\n\nIf you need further assistance, feel free to contact our support team at **whirlwin.supp@gmail.com**";
     }
 
     // Multiple relevant articles
@@ -121,7 +126,7 @@ const LyraAssistant: React.FC = () => {
     });
 
     if (relevantArticles.length > 3) {
-      response += "I found more related information. Feel free to ask more specific questions!";
+      response += "I found more related information. Feel free to ask more specific questions or contact support at **whirlwin.supp@gmail.com** for additional help!";
     }
 
     return response;
@@ -133,7 +138,7 @@ const LyraAssistant: React.FC = () => {
     try {
       const sessionData = {
         user_id: user?.id || null,
-        messages: messages,
+        messages: JSON.stringify(messages), // Fix: Convert messages array to JSON string
         page_url: window.location.href
       };
 
