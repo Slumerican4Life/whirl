@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const NotFound = () => {
   const location = useLocation();
@@ -17,6 +18,11 @@ const NotFound = () => {
   return (
     <div className="min-h-screen flex items-center justify-center swirl-bg">
       <div className="text-center">
+        {/* Show the branded spinner briefly */}
+        <div className="mb-8">
+          <LoadingSpinner size="md" showText={false} />
+        </div>
+        
         <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-whirl-purple via-whirl-pink to-whirl-orange text-transparent bg-clip-text">
           404
         </h1>

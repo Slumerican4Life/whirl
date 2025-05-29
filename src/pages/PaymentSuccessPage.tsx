@@ -6,6 +6,7 @@ import NavBar from '@/components/NavBar';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { CheckCircle } from 'lucide-react';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const PaymentSuccessPage = () => {
   const location = useLocation();
@@ -57,7 +58,7 @@ const PaymentSuccessPage = () => {
       <main className="container mx-auto px-4 py-6 text-center">
         {loading && (
           <>
-            <div className="w-16 h-16 border-4 border-t-whirl-purple border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto"></div>
+            <LoadingSpinner size="lg" />
             <p className="mt-4 text-lg">Processing your payment...</p>
           </>
         )}

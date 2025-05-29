@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { getUsersByWins, User } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NavBar from "@/components/NavBar";
 import { Award } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const LeaderboardPage = () => {
   const { loading } = useRequireAuth();
@@ -15,7 +15,7 @@ const LeaderboardPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center swirl-bg">
-        <div className="animate-pulse text-lg">Loading...</div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
