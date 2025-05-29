@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import NavBar from "@/components/NavBar";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import VotingControls from "@/components/VotingControls";
+import Comments from "@/components/Comments";
 import { toast } from "sonner";
 
 const BattlePage = () => {
@@ -85,7 +85,7 @@ const BattlePage = () => {
       <NavBar />
       
       <main className="container mx-auto px-4 py-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold">
@@ -107,7 +107,7 @@ const BattlePage = () => {
             </Badge>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div className="space-y-4">
               <Card className="overflow-hidden bg-black/30">
                 <div className="relative aspect-video">
@@ -167,7 +167,7 @@ const BattlePage = () => {
             </div>
           </div>
           
-          <div className="mt-8 bg-card p-4 rounded-lg">
+          <div className="mb-8 bg-card p-4 rounded-lg">
             <h3 className="font-semibold mb-2">Battle Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
@@ -179,6 +179,11 @@ const BattlePage = () => {
                 <p><span className="font-medium">Ends:</span> {endTime}</p>
               </div>
             </div>
+          </div>
+
+          {/* Comments Section */}
+          <div className="mt-8">
+            <Comments battleId={battle.id} />
           </div>
         </div>
       </main>
