@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import LyraAssistant from "@/components/LyraAssistant";
 import Index from "./pages/Index";
 import UploadPage from "./pages/Upload";
 import BattlePage from "./pages/BattlePage";
@@ -46,6 +47,8 @@ const App = () => (
               <Route path="/payment-success" element={<PaymentSuccessPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            {/* Lyra Assistant available on all pages */}
+            <LyraAssistant />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

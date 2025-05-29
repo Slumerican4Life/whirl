@@ -9,6 +9,7 @@ import HeroSection from "@/components/page-specific/index/HeroSection";
 import SlumericanCornerSection from "@/components/page-specific/index/SlumericanCornerSection";
 import TodaysBattlesSection from "@/components/page-specific/index/TodaysBattlesSection";
 import ElementalWhirlwind from "@/components/ElementalWhirlwind";
+import LyraAssistant from "@/components/LyraAssistant";
 import { useAuth } from "@/contexts/AuthContext";
 
 const ADS_CLIENT_ID = "ca-pub-5650237599652350";
@@ -170,6 +171,9 @@ const Index = () => {
           className="min-h-[50px] md:min-h-[90px]"
         />
       </div>
+
+      {/* Lyra Assistant - Always available */}
+      <LyraAssistant />
     </div>
   );
 };
