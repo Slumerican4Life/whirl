@@ -1,20 +1,15 @@
 
 import { Link } from "react-router-dom";
-import { Battle, getVideo, getUser } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import type { Battle } from "@/lib/battle-queries";
 
 interface BattleCardProps {
   battle: Battle;
 }
 
 const BattleCard = ({ battle }: BattleCardProps) => {
-  const video1 = getVideo(battle.video1Id);
-  const video2 = getVideo(battle.video2Id);
-  const user1 = video1 ? getUser(video1.userId) : undefined;
-  const user2 = video2 ? getUser(video2.userId) : undefined;
-
-  if (!video1 || !video2 || !user1 || !user2) {
+  if (!battle.video1 || !battle.video2) {
     return null;
   }
 
@@ -31,6 +26,10 @@ const BattleCard = ({ battle }: BattleCardProps) => {
     }
   };
 
+  const video1VoteCount = battle.vote_counts?.video1_votes || 0;
+  const video2VoteCount = battle.vote_counts?.video2_votes || 0;
+  const totalVotes = video1VoteCount + video2VoteCount;
+
   return (
     <Link to={`/battle/${battle.id}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-all hover:scale-105 bg-battle-bg border-whirl-purple/20">
@@ -46,12 +45,19 @@ const BattleCard = ({ battle }: BattleCardProps) => {
             <div className="flex-1 bg-black/30 rounded-lg overflow-hidden">
               <div className="relative aspect-video">
                 <img 
-                  src={video1.thumbnail} 
-                  alt={video1.title} 
+                  src={battle.video1.thumbnail_url || '/placeholder.svg'} 
+                  alt={battle.video1.title} 
                   className="object-cover w-full h-full"
                 />
                 <div className="absolute bottom-0 left-0 p-2 bg-gradient-to-t from-black/80 to-transparent w-full">
-                  <p className="text-sm font-semibold text-white">{user1.username}</p>
+                  <p className="text-sm font-semibold text-white">
+                    {battle.video1.user_profile?.username || 'Anonymous'}
+                  </p>
+                  {totalVotes > 0 && (
+                    <p className="text-xs text-green-400">
+                      {video1VoteCount} votes ({Math.round((video1VoteCount / totalVotes) * 100)}%)
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -71,16 +77,34 @@ const BattleCard = ({ battle }: BattleCardProps) => {
             <div className="flex-1 bg-black/30 rounded-lg overflow-hidden">
               <div className="relative aspect-video">
                 <img 
-                  src={video2.thumbnail} 
-                  alt={video2.title} 
+                  src={battle.video2.thumbnail_url || '/placeholder.svg'} 
+                  alt={battle.video2.title} 
                   className="object-cover w-full h-full"
                 />
                 <div className="absolute bottom-0 left-0 p-2 bg-gradient-to-t from-black/80 to-transparent w-full">
-                  <p className="text-sm font-semibold text-white">{user2.username}</p>
+                  <p className="text-sm font-semibold text-white">
+                    {battle.video2.user_profile?.username || 'Anonymous'}
+                  </p>
+                  {totalVotes > 0 && (
+                    <p className="text-xs text-green-400">
+                      {video2VoteCount} votes ({Math.round((video2VoteCount / totalVotes) * 100)}%)
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
           </div>
+
+          {battle.status === 'active' && (
+            <div className="mt-4 text-center">
+              <p className="text-sm text-whirl-purple font-medium">
+                🔥 Battle Active - Vote Now! 🔥
+              </p>
+              <p className="text-xs text-gray-400">
+                Total votes: {totalVotes}
+              </p>
+            </div>
+          )}
         </div>
       </Card>
     </Link>

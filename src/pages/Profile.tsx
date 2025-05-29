@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/NavBar";
-import VideoCard from "@/components/VideoCard"; // This component is read-only
+import VideoCard from "@/components/VideoCard";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { supabase } from "@/integrations/supabase/client";
 import TokenPurchaseOptions from "@/components/TokenPurchaseOptions";
@@ -11,8 +12,10 @@ import { useQuery } from "@tanstack/react-query";
 import { getUserVideos } from "@/lib/video-queries"; 
 import type { Video as DbVideo } from "@/lib/types"; 
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Category } from "@/lib/data"; // Import Category type
-import { categories } from "@/lib/data"; // Import categories array
+import type { Category } from "@/lib/data";
+import { categories } from "@/lib/data";
+import { getUserBadges, checkAndAwardBadges } from "@/lib/badge-queries";
+import type { UserBadge } from "@/lib/badge-queries";
 
 // Define the type expected by VideoCard
 interface VideoCardVideo {
@@ -21,7 +24,7 @@ interface VideoCardVideo {
   url: string;
   thumbnail: string;
   userId: string;
-  category: Category; // Changed from string to Category
+  category: Category;
   likes: number;
   dislikes: number;
   comments: number;
@@ -34,6 +37,9 @@ const ProfilePage = () => {
   
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const [loadingBalance, setLoadingBalance] = useState(true);
+  const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
+  const [loadingBadges, setLoadingBadges] = useState(true);
+  const [userStats, setUserStats] = useState({ wins: 0, losses: 0, battles: 0 });
   
   // Fetch user's videos
   const { data: userVideos, isLoading: videosLoading, error: videosError } = useQuery({
@@ -50,15 +56,13 @@ const ProfilePage = () => {
       if (user) {
         setLoadingBalance(true);
         try {
-          // Explicitly type the table name if issues persist, but usually not needed with typed client
           const { data, error } = await supabase
             .from('token_wallets') 
             .select('balance')
             .eq('user_id', user.id)
             .single();
 
-          if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine
-            // console.error("Error fetching token balance (non-PGRST116):", error);
+          if (error && error.code !== 'PGRST116') {
             throw error;
           }
           setTokenBalance(data?.balance ?? 0);
@@ -69,13 +73,52 @@ const ProfilePage = () => {
           setLoadingBalance(false);
         }
       } else {
-        setTokenBalance(null); // Clear balance if no user
-        setLoadingBalance(false); // Not loading if no user
+        setTokenBalance(null);
+        setLoadingBalance(false);
       }
     };
 
-    if (!authLoading) { // Only fetch if auth is settled
+    if (!authLoading) {
       fetchTokenBalance();
+    }
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user?.id) {
+        setLoadingBadges(true);
+        try {
+          // Fetch user badges
+          const badges = await getUserBadges(user.id);
+          setUserBadges(badges);
+
+          // Fetch user stats
+          const { data: stats } = await supabase
+            .from('user_stats')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          if (stats) {
+            setUserStats({
+              wins: stats.total_wins || 0,
+              losses: stats.total_losses || 0,
+              battles: stats.battles_participated || 0
+            });
+          }
+
+          // Check and award new badges based on current stats
+          await checkAndAwardBadges(user.id);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        } finally {
+          setLoadingBadges(false);
+        }
+      }
+    };
+
+    if (!authLoading && user) {
+      fetchUserData();
     }
   }, [user, authLoading]);
 
@@ -95,12 +138,6 @@ const ProfilePage = () => {
     );
   }
 
-  const demoUserBadges = [ // Placeholder until badges are fetched from DB
-    { id: "1", name: "First Upload", icon: "🏆", description: "Uploaded your first video." },
-    { id: "2", name: "Streak Master", icon: "🔥", description: "Maintained a 5-day upload streak." },
-  ];
-  const demoUserWins = 0; // Placeholder
-
   const displayUsername = user.user_metadata?.username || user.email?.split('@')[0] || "User";
   const displayAvatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/micah/svg?seed=${displayUsername}`;
 
@@ -118,8 +155,7 @@ const ProfilePage = () => {
                 className="rounded-full border-4 border-whirl-purple animate-pulse-glow object-cover"
               />
               <div className="absolute -bottom-2 -right-2 bg-whirl-purple text-white rounded-full px-2 py-1 text-xs font-semibold">
-                {/* TODO: Fetch wins from a proper user_stats table or similar */}
-                {demoUserWins} Wins 
+                {userStats.wins} Wins 
               </div>
             </div>
             
@@ -127,22 +163,38 @@ const ProfilePage = () => {
               {displayUsername}
             </h1>
             
-            {loadingBalance ? (
-              <Skeleton className="h-6 w-24 mb-3 bg-slate-700" />
-            ) : tokenBalance !== null ? (
-              <div className="flex items-center text-lg text-whirl-orange mb-3">
-                <Coins className="w-5 h-5 mr-2" />
-                <span>{tokenBalance} Tokens</span>
+            <div className="flex items-center gap-4 mb-3">
+              {loadingBalance ? (
+                <Skeleton className="h-6 w-24 bg-slate-700" />
+              ) : tokenBalance !== null ? (
+                <div className="flex items-center text-lg text-whirl-orange">
+                  <Coins className="w-5 h-5 mr-2" />
+                  <span>{tokenBalance} Tokens</span>
+                </div>
+              ) : null}
+              
+              <div className="text-sm text-gray-300">
+                <span className="font-medium">{userStats.battles}</span> battles
               </div>
-            ) : null}
+            </div>
             
             <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {/* TODO: Fetch badges for the authenticated user */}
-              {demoUserBadges.map((badge) => (
-                <Badge key={badge.id} variant="secondary" className="bg-card/70 hover:bg-card/90 text-foreground border-whirl-blue-dark">
-                  {badge.icon} {badge.name}
-                </Badge>
-              ))}
+              {loadingBadges ? (
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-20 bg-slate-700" />
+                  <Skeleton className="h-8 w-24 bg-slate-700" />
+                </div>
+              ) : userBadges.length > 0 ? (
+                userBadges.slice(0, 4).map((badge) => (
+                  <Badge key={badge.id} variant="secondary" className="bg-card/70 hover:bg-card/90 text-foreground border-whirl-blue-dark">
+                    {badge.icon} {badge.name}
+                  </Badge>
+                ))
+              ) : (
+                <div className="text-sm text-gray-400">
+                  No badges earned yet - start battling!
+                </div>
+              )}
             </div>
           </div>
 
@@ -176,7 +228,6 @@ const ProfilePage = () => {
               {!videosLoading && !videosError && userVideos && userVideos.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {userVideos.map((dbVideo: DbVideo) => {
-                    // Transform dbVideo to the format expected by VideoCard
                     const cardVideo: VideoCardVideo = {
                       id: dbVideo.id,
                       title: dbVideo.title,
@@ -185,11 +236,11 @@ const ProfilePage = () => {
                       userId: dbVideo.user_id,
                       category: (dbVideo.category && categories.includes(dbVideo.category as Category)) 
                                 ? dbVideo.category as Category 
-                                : categories[0], // Default to first category if invalid or null
-                      likes: 0, // Default 'likes' as it's not in DbVideo
-                      dislikes: 0, // Default 'dislikes' as it's not in DbVideo
-                      comments: 0, // Default 'comments' as it's not in DbVideo
-                      timestamp: dbVideo.created_at, // Use created_at as timestamp
+                                : categories[0],
+                      likes: 0,
+                      dislikes: 0,
+                      comments: 0,
+                      timestamp: dbVideo.created_at,
                       createdAt: dbVideo.created_at,
                     };
                     return <VideoCard key={dbVideo.id} video={cardVideo} />;
@@ -209,21 +260,34 @@ const ProfilePage = () => {
             
             <TabsContent value="badges">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {/* TODO: Fetch badges for the authenticated user */}
-                {demoUserBadges.map((badge) => (
-                  <div key={badge.id} className="p-4 bg-card/70 rounded-lg flex items-center border border-whirl-blue-dark">
-                    <div className="text-4xl mr-3">{badge.icon}</div>
-                    <div>
-                      <div className="font-semibold">{badge.name}</div>
-                      <div className="text-sm text-muted-foreground">{badge.description}</div>
+                {loadingBadges ? (
+                  [...Array(3)].map((_, i) => (
+                    <div key={i} className="p-4 bg-card/70 rounded-lg flex items-center border border-whirl-blue-dark">
+                      <Skeleton className="w-12 h-12 rounded bg-slate-700 mr-3" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-20 bg-slate-700" />
+                        <Skeleton className="h-3 w-32 bg-slate-700" />
+                      </div>
                     </div>
-                  </div>
-                ))}
-                 {demoUserBadges.length === 0 && (
+                  ))
+                ) : userBadges.length > 0 ? (
+                  userBadges.map((badge) => (
+                    <div key={badge.id} className="p-4 bg-card/70 rounded-lg flex items-center border border-whirl-blue-dark">
+                      <div className="text-4xl mr-3">{badge.icon}</div>
+                      <div>
+                        <div className="font-semibold">{badge.name}</div>
+                        <div className="text-sm text-muted-foreground">{badge.description}</div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Earned: {new Date(badge.earned_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
                    <div className="text-center py-12 col-span-full">
                     <p className="text-muted-foreground">No badges earned yet. Keep battling!</p>
                   </div>
-                 )}
+                )}
               </div>
             </TabsContent>
           </Tabs>

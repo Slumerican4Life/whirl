@@ -1,19 +1,37 @@
 
-import { useState } from "react";
-import { getUsersByWins, User } from "@/lib/data";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NavBar from "@/components/NavBar";
 import { Award } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { getTopUsers, UserWithStats } from "@/lib/user-queries";
 
 const LeaderboardPage = () => {
   const { loading } = useRequireAuth();
   const [timeframe, setTimeframe] = useState<"daily" | "weekly">("daily");
+  const [topUsers, setTopUsers] = useState<UserWithStats[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   
-  const topUsers = getUsersByWins();
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoadingUsers(true);
+      try {
+        const users = await getTopUsers(50);
+        setTopUsers(users);
+      } catch (error) {
+        console.error("Error loading leaderboard:", error);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    if (!loading) {
+      fetchUsers();
+    }
+  }, [loading]);
   
-  if (loading) {
+  if (loading || loadingUsers) {
     return (
       <div className="min-h-screen flex items-center justify-center swirl-bg">
         <LoadingSpinner size="lg" />
@@ -21,7 +39,7 @@ const LeaderboardPage = () => {
     );
   }
   
-  const renderUserRank = (user: User, index: number) => {
+  const renderUserRank = (user: UserWithStats, index: number) => {
     return (
       <div key={user.id} className="flex items-center p-4 hover:bg-card/80 rounded-lg transition-colors">
         <div className="mr-4 text-xl font-bold w-8 text-center">
@@ -31,8 +49,8 @@ const LeaderboardPage = () => {
         <div className="flex items-center flex-1">
           <div className="relative">
             <img 
-              src={user.avatar} 
-              alt={user.username} 
+              src={user.avatar_url || `https://api.dicebear.com/8.x/micah/svg?seed=${user.id}`} 
+              alt={user.username || 'Anonymous'} 
               className="w-10 h-10 rounded-full mr-3"
             />
             {index < 3 && (
@@ -44,7 +62,7 @@ const LeaderboardPage = () => {
           </div>
           
           <div>
-            <div className="font-medium">{user.username}</div>
+            <div className="font-medium">{user.username || 'Anonymous'}</div>
             <div className="text-xs text-muted-foreground flex items-center gap-1">
               {user.badges?.slice(0, 2).map((badge) => (
                 <span key={badge.id} title={badge.description}>{badge.icon}</span>
@@ -84,13 +102,25 @@ const LeaderboardPage = () => {
             
             <TabsContent value="daily" className="bg-card/50 rounded-lg">
               <div className="p-2 space-y-1">
-                {topUsers.map((user, index) => renderUserRank(user, index))}
+                {topUsers.length > 0 ? (
+                  topUsers.map((user, index) => renderUserRank(user, index))
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">No users found. Be the first to upload and battle!</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
             
             <TabsContent value="weekly" className="bg-card/50 rounded-lg">
               <div className="p-2 space-y-1">
-                {topUsers.map((user, index) => renderUserRank(user, index))}
+                {topUsers.length > 0 ? (
+                  topUsers.map((user, index) => renderUserRank(user, index))
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground">No users found. Be the first to upload and battle!</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>

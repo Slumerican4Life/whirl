@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Category, getActiveBattles, Battle, getBattlesByCategory } from "@/lib/data";
+import { Category } from "@/lib/data";
 import NavBar from "@/components/NavBar";
 import AdSenseUnit from "@/components/AdSenseUnit";
 import TokenCTA from "@/components/TokenCTA";
@@ -10,6 +10,8 @@ import SlumericanCornerSection from "@/components/page-specific/index/Slumerican
 import TodaysBattlesSection from "@/components/page-specific/index/TodaysBattlesSection";
 import ElementalWhirlwind from "@/components/ElementalWhirlwind";
 import { useAuth } from "@/contexts/AuthContext";
+import { getActiveBattles, getBattlesByCategory } from "@/lib/battle-queries";
+import type { Battle } from "@/lib/battle-queries";
 
 const ADS_CLIENT_ID = "ca-pub-5650237599652350";
 
@@ -27,7 +29,7 @@ const Index = () => {
         // Simulate minimum loading time for better UX
         const startTime = Date.now();
         
-        const allActiveBattles = getActiveBattles();
+        const allActiveBattles = await getActiveBattles();
         
         if (selectedCategory !== 'All') {
           setActiveBattles(allActiveBattles.filter(battle => battle.category === selectedCategory));
@@ -35,7 +37,8 @@ const Index = () => {
           setActiveBattles(allActiveBattles);
         }
 
-        setSlumericanBattles(getBattlesByCategory('Slumerican').filter(battle => battle.status === 'active'));
+        const slumericanBattlesData = await getBattlesByCategory('Slumerican');
+        setSlumericanBattles(slumericanBattlesData.filter(battle => battle.status === 'active'));
         
         // Ensure minimum loading time for smooth experience
         const elapsedTime = Date.now() - startTime;
