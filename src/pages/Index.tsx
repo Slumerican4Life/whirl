@@ -61,8 +61,8 @@ const Index = () => {
     return (
       <div className="min-h-screen swirl-bg flex items-center justify-center">
         <div className="text-center">
-          <LoadingSpinner />
-          <p className="text-white mt-4 text-lg font-medium animate-pulse">
+          <LoadingSpinner size="lg" />
+          <p className="text-white mt-6 text-xl font-medium animate-pulse">
             Loading epic battles...
           </p>
         </div>
