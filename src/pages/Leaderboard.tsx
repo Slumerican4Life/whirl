@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { getUsersByWins, User } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +11,7 @@ const LeaderboardPage = () => {
   const { loading } = useRequireAuth();
   const [timeframe, setTimeframe] = useState<"daily" | "weekly">("daily");
   
-  const topUsers = getUsersByWins(10);
+  const topUsers = getUsersByWins();
   
   if (loading) {
     return (
@@ -45,10 +46,10 @@ const LeaderboardPage = () => {
           <div>
             <div className="font-medium">{user.username}</div>
             <div className="text-xs text-muted-foreground flex items-center gap-1">
-              {user.badges.slice(0, 2).map((badge) => (
+              {user.badges?.slice(0, 2).map((badge) => (
                 <span key={badge.id} title={badge.description}>{badge.icon}</span>
               ))}
-              {user.badges.length > 2 && <span>+{user.badges.length - 2}</span>}
+              {user.badges && user.badges.length > 2 && <span>+{user.badges.length - 2}</span>}
             </div>
           </div>
         </div>

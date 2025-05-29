@@ -23,6 +23,9 @@ interface VideoCardVideo {
   userId: string;
   category: Category; // Changed from string to Category
   likes: number;
+  dislikes: number;
+  comments: number;
+  timestamp: string;
   createdAt: string;
 }
 
@@ -100,7 +103,6 @@ const ProfilePage = () => {
 
   const displayUsername = user.user_metadata?.username || user.email?.split('@')[0] || "User";
   const displayAvatar = user.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/micah/svg?seed=${displayUsername}`;
-
 
   return (
     <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg text-white">
@@ -185,6 +187,9 @@ const ProfilePage = () => {
                                 ? dbVideo.category as Category 
                                 : categories[0], // Default to first category if invalid or null
                       likes: 0, // Default 'likes' as it's not in DbVideo
+                      dislikes: 0, // Default 'dislikes' as it's not in DbVideo
+                      comments: 0, // Default 'comments' as it's not in DbVideo
+                      timestamp: dbVideo.created_at, // Use created_at as timestamp
                       createdAt: dbVideo.created_at,
                     };
                     return <VideoCard key={dbVideo.id} video={cardVideo} />;

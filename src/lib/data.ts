@@ -24,12 +24,19 @@ export interface Battle {
   status: string;
 }
 
+export interface Badge {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+}
+
 export interface User {
   id: string;
   username: string;
   avatar: string;
   wins?: number;
-  badges?: string[];
+  badges?: Badge[];
 }
 
 export type Category =
@@ -52,35 +59,48 @@ export const mockUsers: User[] = [
     username: "SlumKing",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
     wins: 15,
-    badges: ["Champion", "Freestyle King"]
+    badges: [
+      { id: "1", name: "Champion", icon: "🏆", description: "Won multiple battles" },
+      { id: "2", name: "Freestyle King", icon: "👑", description: "Master of freestyle battles" }
+    ]
   },
   {
     id: "2",
     username: "BeatMaster",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
     wins: 12,
-    badges: ["Beat Maker"]
+    badges: [
+      { id: "3", name: "Beat Maker", icon: "🎵", description: "Creates amazing beats" }
+    ]
   },
   {
     id: "3",
     username: "RhymeQueen",
     avatar: "https://images.unsplash.com/photo-1494790108755-2616b9b6c14e?w=150",
     wins: 18,
-    badges: ["Lyric Master", "Queen"]
+    badges: [
+      { id: "4", name: "Lyric Master", icon: "📝", description: "Master of lyrical content" },
+      { id: "5", name: "Queen", icon: "👸", description: "Reigning champion" }
+    ]
   },
   {
     id: "4",
     username: "FlowState",
     avatar: "https://images.unsplash.com/photo-1531427186611-ecfd6d936e79?w=150",
     wins: 9,
-    badges: ["Flow Master"]
+    badges: [
+      { id: "6", name: "Flow Master", icon: "🌊", description: "Perfect flow and rhythm" }
+    ]
   },
   {
     id: "5",
     username: "LyricLegend",
     avatar: "https://images.unsplash.com/photo-1500648767791-00d5a4ee9baa?w=150",
     wins: 21,
-    badges: ["Legend", "Wordsmith"]
+    badges: [
+      { id: "7", name: "Legend", icon: "⭐", description: "Legendary status achieved" },
+      { id: "8", name: "Wordsmith", icon: "✍️", description: "Master of words" }
+    ]
   },
 ];
 
