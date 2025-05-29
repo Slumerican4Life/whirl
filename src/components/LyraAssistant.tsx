@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Sparkles } from 'lucide-react';
 import { useLyraAssistant } from './lyra-assistant/useLyraAssistant';
 import ChatHeader from './lyra-assistant/ChatHeader';
 import ChatInterface from './lyra-assistant/ChatInterface';
@@ -26,9 +26,10 @@ const LyraAssistant: React.FC = () => {
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
-          className="rounded-full w-16 h-16 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transition-all duration-300 group"
+          className="rounded-full w-16 h-16 bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transition-all duration-300 group relative"
         >
           <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
+          <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-yellow-300 animate-pulse" />
         </Button>
       ) : (
         <div className="w-80 h-96 bg-gray-900/95 backdrop-blur-md border border-gray-700 rounded-lg shadow-2xl flex flex-col">

@@ -3,7 +3,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Message, HelpArticle } from './types';
-import { generateResponse } from './responseUtils';
 
 export const useLyraAssistant = () => {
   const { user } = useAuth();
@@ -11,7 +10,7 @@ export const useLyraAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hi! I'm Lyra, your personal assistant. I'm here to help you navigate the platform, understand how battles work, learn about tokens, and troubleshoot any issues. What can I help you with today?",
+      content: "Hi! I'm Lyra, your AI-powered assistant. I'm here to help you navigate the platform, understand how battles work, learn about tokens, and troubleshoot any issues. I have full knowledge of Whirl Win and can provide personalized guidance. What can I help you with today?",
       isUser: false,
       timestamp: new Date()
     }
@@ -80,20 +79,59 @@ export const useLyraAssistant = () => {
     setInputValue('');
     setIsLoading(true);
 
-    // Simulate thinking time
-    setTimeout(() => {
-      const response = generateResponse(userMessage.content, helpArticles);
-      
+    try {
+      // Prepare context for the AI
+      const pageContext = {
+        currentPage: window.location.pathname,
+        url: window.location.href,
+        title: document.title
+      };
+
+      const userContext = {
+        isLoggedIn: !!user,
+        userId: user?.id || null
+      };
+
+      console.log('Sending message to Lyra AI:', userMessage.content);
+
+      // Call the AI edge function
+      const { data, error } = await supabase.functions.invoke('lyra-chat', {
+        body: {
+          message: userMessage.content,
+          pageContext,
+          userContext
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const aiResponse = data.response || "I'm sorry, I encountered an issue. Please try again or contact support at whirlwin.supp@gmail.com";
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: response,
+        content: aiResponse,
         isUser: false,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm experiencing some technical difficulties right now. Please try again in a moment, or contact our support team at **whirlwin.supp@gmail.com** for assistance.",
+        isUser: false,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
