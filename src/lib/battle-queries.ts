@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -101,7 +100,7 @@ export const getBattles = async (): Promise<Battle[]> => {
               video1_votes,
               video2_votes
             }
-          };
+          } as Battle;
         })
     );
 
