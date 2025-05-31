@@ -1,71 +1,61 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import NavBar from "@/components/NavBar";
-import { Battle, getBattle, getVideo, getUser } from "@/lib/data";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { Battle, getBattleById } from "@/lib/battle-queries";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Users, Clock, Trophy } from "lucide-react";
+import NavBar from "@/components/NavBar";
 import VotingControls from "@/components/VotingControls";
 import Comments from "@/components/Comments";
 import { toast } from "sonner";
 
 const BattlePage = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const [battle, setBattle] = useState<Battle | null>(null);
-  const [video1, setVideo1] = useState<any>(null);
-  const [video2, setVideo2] = useState<any>(null);
-  const [user1, setUser1] = useState<any>(null);
-  const [user2, setUser2] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      const battleData = getBattle(id);
-      if (battleData) {
+    const loadBattle = async () => {
+      if (!id) return;
+      
+      try {
+        const battleData = await getBattleById(id);
         setBattle(battleData);
-        
-        const v1 = getVideo(battleData.video1Id);
-        const v2 = getVideo(battleData.video2Id);
-        setVideo1(v1);
-        setVideo2(v2);
-        
-        if (v1 && v2) {
-          const u1 = getUser(v1.userId);
-          const u2 = getUser(v2.userId);
-          setUser1(u1);
-          setUser2(u2);
-        }
+      } catch (error) {
+        console.error('Error loading battle:', error);
+        toast.error('Failed to load battle');
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    loadBattle();
   }, [id]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen swirl-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-t-whirl-purple border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-lg">Loading battle...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-whirl-purple"></div>
+          <p className="text-white mt-4">Loading battle...</p>
         </div>
       </div>
     );
   }
 
-  if (!battle || !video1 || !video2 || !user1 || !user2) {
+  if (!battle) {
     return (
-      <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg">
-        <NavBar />
-        <main className="container mx-auto px-4 py-6">
-          <div className="text-center py-12">
-            <h1 className="text-3xl font-bold mb-2">Battle Not Found</h1>
-            <p className="text-muted-foreground">
-              Sorry, this battle doesn't exist or has been removed.
-            </p>
-            <Button className="mt-6" onClick={() => window.history.back()}>
-              Go Back
+      <div className="min-h-screen swirl-bg flex items-center justify-center">
+        <div className="text-center text-white">
+          <h1 className="text-2xl font-bold mb-4">Battle Not Found</h1>
+          <Link to="/">
+            <Button className="bg-whirl-purple hover:bg-whirl-deep-purple">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
             </Button>
-          </div>
-        </main>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -112,25 +102,25 @@ const BattlePage = () => {
               <Card className="overflow-hidden bg-black/30">
                 <div className="relative aspect-video">
                   <video
-                    src={video1.url}
-                    poster={video1.thumbnail}
+                    src={battle.video1.url}
+                    poster={battle.video1.thumbnail}
                     controls
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg">{video1.title}</h3>
+                  <h3 className="font-semibold text-lg">{battle.video1.title}</h3>
                   <div className="flex items-center mt-2">
                     <img
-                      src={user1.avatar}
-                      alt={user1.username}
+                      src={battle.video1.user.avatar}
+                      alt={battle.video1.user.username}
                       className="w-8 h-8 rounded-full mr-2"
                     />
-                    <span>{user1.username}</span>
+                    <span>{battle.video1.user.username}</span>
                   </div>
                   {isActive && (
                     <div className="mt-4">
-                      <VotingControls battleId={battle.id} videoId={video1.id} />
+                      <VotingControls battleId={battle.id} videoId={battle.video1.id} />
                     </div>
                   )}
                 </div>
@@ -141,25 +131,25 @@ const BattlePage = () => {
               <Card className="overflow-hidden bg-black/30">
                 <div className="relative aspect-video">
                   <video
-                    src={video2.url}
-                    poster={video2.thumbnail}
+                    src={battle.video2.url}
+                    poster={battle.video2.thumbnail}
                     controls
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg">{video2.title}</h3>
+                  <h3 className="font-semibold text-lg">{battle.video2.title}</h3>
                   <div className="flex items-center mt-2">
                     <img
-                      src={user2.avatar}
-                      alt={user2.username}
+                      src={battle.video2.user.avatar}
+                      alt={battle.video2.user.username}
                       className="w-8 h-8 rounded-full mr-2"
                     />
-                    <span>{user2.username}</span>
+                    <span>{battle.video2.user.username}</span>
                   </div>
                   {isActive && (
                     <div className="mt-4">
-                      <VotingControls battleId={battle.id} videoId={video2.id} />
+                      <VotingControls battleId={battle.id} videoId={battle.video2.id} />
                     </div>
                   )}
                 </div>
