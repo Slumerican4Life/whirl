@@ -79,12 +79,13 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         {/* Glow Background */}
         <div className={`absolute inset-0 ${logoSizes[size]} bg-purple-500/30 rounded-full blur-xl animate-pulse`}></div>
         
-        {/* Slumbucket Purple Power Fist Logo */}
-        <div className={`relative ${logoSizes[size]} bg-gradient-to-br from-purple-600 to-purple-800 rounded-full border-2 border-purple-400 flex items-center justify-center overflow-hidden animate-pulse shadow-2xl`}>
-          {/* Purple Power Fist Icon */}
-          <div className="text-white text-4xl md:text-5xl lg:text-6xl">
-            ✊
-          </div>
+        {/* Your Custom Slumbucket Logo */}
+        <div className={`relative ${logoSizes[size]} rounded-full overflow-hidden animate-pulse shadow-2xl`}>
+          <img 
+            src="/lovable-uploads/a6653ca0-126b-4357-bbbe-f590843e0a10.png" 
+            alt="Slumbucket Power Fist" 
+            className="w-full h-full object-contain"
+          />
         </div>
       </div>
 

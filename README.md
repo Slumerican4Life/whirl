@@ -2,10 +2,14 @@
 # 🔥 **WHIRL-WIN** 🔥
 ## Powered by **SLUMBUCKET**
 
----
+<div align="center">
+  <img src="/lovable-uploads/a6653ca0-126b-4357-bbbe-f590843e0a10.png" alt="Slumbucket Power Fist Logo" width="200" height="200">
+  
+  ### 💜 **The Ultimate Creator Battle Platform** 💜
+  **Where Raw Talent Meets Epic Competition**
+</div>
 
-### 🎯 **THE ULTIMATE CREATOR BATTLE PLATFORM**
-**Where Raw Talent Meets Epic Competition**
+---
 
 **Whirl-Win** is the revolutionary video battle platform that puts creators in the spotlight and lets the community decide who reigns supreme. Built with the authentic spirit of **Slumerican culture** and powered by the innovation of **Slumbucket**.
 
@@ -24,6 +28,10 @@ Whirl-Win transforms the way creators compete and connect:
 ---
 
 ## 🎨 **POWERED BY SLUMBUCKET**
+
+<div align="center">
+  <img src="/lovable-uploads/a6653ca0-126b-4357-bbbe-f590843e0a10.png" alt="Slumbucket Logo" width="150">
+</div>
 
 **Slumbucket** brings years of creative innovation and community building to Whirl-Win:
 
@@ -120,6 +128,10 @@ npm run dev
 
 ## 🎨 **SLUMBUCKET BRANDING**
 
+<div align="center">
+  <img src="/lovable-uploads/a6653ca0-126b-4357-bbbe-f590843e0a10.png" alt="Brand Logo" width="120">
+</div>
+
 ### **Logo Usage**
 - Primary: Purple power fist (strength & creativity)
 - Colors: Deep purple (#6B46C1) with gradient accents
@@ -155,7 +167,11 @@ We welcome contributions from the creative community:
 
 ## 💜 **BUILT WITH LOVE BY SLUMBUCKET**
 
-*Transforming creative competition, one battle at a time.*
+<div align="center">
+  <img src="/lovable-uploads/a6653ca0-126b-4357-bbbe-f590843e0a10.png" alt="Slumbucket Final Logo" width="100">
+  
+  *Transforming creative competition, one battle at a time.*
+</div>
 
 **Follow the journey:**
 - Platform: [Whirl-Win Live](https://lovable.dev/projects/08402910-03c8-4f92-8e6a-60c15b321baf)
