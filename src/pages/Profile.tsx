@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +6,8 @@ import VideoCard from "@/components/VideoCard";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { supabase } from "@/integrations/supabase/client";
 import TokenPurchaseOptions from "@/components/TokenPurchaseOptions";
-import { Coins, Film } from "lucide-react";
+import TwoFactorSetup from "@/components/TwoFactorSetup";
+import { Coins, Film, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserVideos } from "@/lib/video-queries"; 
 import type { Video as DbVideo } from "@/lib/types"; 
@@ -203,9 +203,13 @@ const ProfilePage = () => {
           </div>
           
           <Tabs defaultValue="videos" className="mb-8">
-            <TabsList className="grid grid-cols-2 mb-6 mx-auto max-w-md bg-background/50 border border-whirl-blue-dark">
+            <TabsList className="grid grid-cols-3 mb-6 mx-auto max-w-lg bg-background/50 border border-whirl-blue-dark">
               <TabsTrigger value="videos" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">My Videos</TabsTrigger>
               <TabsTrigger value="badges" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">My Badges</TabsTrigger>
+              <TabsTrigger value="security" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">
+                <Shield className="w-4 h-4 mr-1" />
+                Security
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="videos">
@@ -289,6 +293,10 @@ const ProfilePage = () => {
                   </div>
                 )}
               </div>
+            </TabsContent>
+            
+            <TabsContent value="security">
+              <TwoFactorSetup />
             </TabsContent>
           </Tabs>
         </div>

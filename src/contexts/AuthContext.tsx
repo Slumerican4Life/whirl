@@ -25,15 +25,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
         if (event === 'SIGNED_IN') {
           toast.success("Successfully signed in!");
+          // Check if user has 2FA enabled
+          if (currentSession?.user) {
+            try {
+              const { data: twoFactorSettings } = await supabase
+                .from('user_2fa_settings')
+                .select('enabled')
+                .eq('user_id', currentSession.user.id)
+                .maybeSingle();
+              
+              if (twoFactorSettings?.enabled) {
+                // Redirect to 2FA verification page
+                navigate("/verify-2fa");
+                return;
+              }
+            } catch (error) {
+              console.error("Error checking 2FA settings:", error);
+            }
+          }
+          navigate("/profile");
         } else if (event === 'SIGNED_OUT') {
           toast.info("Signed out successfully");
-          navigate("/login");
+          navigate("/enhanced-login");
+        } else if (event === 'PASSWORD_RECOVERY') {
+          toast.info("Check your email for password reset instructions");
         }
       }
     );
@@ -52,7 +73,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/profile`
+        }
+      });
       if (error) throw error;
       toast.success("Signup successful! Please check your email for verification.");
     } catch (error: any) {
@@ -65,7 +92,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      navigate("/");
     } catch (error: any) {
       toast.error(`Error signing in: ${error.message}`);
       throw error;

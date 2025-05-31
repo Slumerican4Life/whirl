@@ -1,61 +1,56 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import LyraAssistant from "@/components/LyraAssistant";
+import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
-import UploadPage from "./pages/Upload";
-import BattlePage from "./pages/BattlePage";
-import LeaderboardPage from "./pages/Leaderboard";
+import LoginPage from "./pages/Login";
+import EnhancedLoginPage from "./pages/EnhancedLogin";
+import ResetPasswordPage from "./pages/ResetPassword";
+import Verify2FAPage from "./pages/Verify2FA";
+import Signup from "./pages/Signup";
+import Upload from "./pages/Upload";
 import ProfilePage from "./pages/Profile";
-import SlumericanPage from "./pages/Slumerican";
+import BattlePage from "./pages/BattlePage";
+import Leaderboard from "./pages/Leaderboard";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
-import LoginPage from "./pages/Login";
-import SignupPage from "./pages/Signup";
+import Slumerican from "./pages/Slumerican";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import LyraAssistant from "./components/LyraAssistant";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-const App = () => (
-  <ErrorBoundary>
+function App() {
+  return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
         <BrowserRouter>
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/battle/:id" element={<BattlePage />} />
-              <Route path="/leaderboard" element={<LeaderboardPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/slumerican" element={<SlumericanPage />} />
-              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/enhanced-login" element={<EnhancedLoginPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/verify-2fa" element={<Verify2FAPage />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/battle/:id" element={<BattlePage />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/slumerican" element={<Slumerican />} />
               <Route path="/payment-success" element={<PaymentSuccessPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-            {/* Lyra Assistant available on all pages */}
             <LyraAssistant />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
-  </ErrorBoundary>
-);
+  );
+}
 
 export default App;

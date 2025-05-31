@@ -50,6 +50,94 @@ export type Database = {
           },
         ]
       }
+      badge_definitions: {
+        Row: {
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirements: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          icon: string
+          id?: string
+          name: string
+          requirements?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirements?: Json | null
+        }
+        Relationships: []
+      }
+      battles: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          end_time: string | null
+          id: string
+          start_time: string | null
+          status: string | null
+          updated_at: string | null
+          video1_id: string | null
+          video2_id: string | null
+          winner_video_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          start_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+          video1_id?: string | null
+          video2_id?: string | null
+          winner_video_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          start_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+          video1_id?: string | null
+          video2_id?: string | null
+          winner_video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battles_video1_id_fkey"
+            columns: ["video1_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battles_video2_id_fkey"
+            columns: ["video2_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battles_winner_video_id_fkey"
+            columns: ["winner_video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       boosted_videos: {
         Row: {
           boost_type: Database["public"]["Enums"]["boost_type_enum"]
@@ -338,6 +426,131 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_2fa_settings: {
+        Row: {
+          backup_codes: string[] | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          method: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          backup_codes?: string[] | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          method?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          backup_codes?: string[] | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          method?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_id: string | null
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id?: string | null
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string | null
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badge_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_phone_verification: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          phone_number: string
+          user_id: string
+          verification_code: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          phone_number: string
+          user_id: string
+          verification_code: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          phone_number?: string
+          user_id?: string
+          verification_code?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          battles_participated: number | null
+          created_at: string | null
+          id: string
+          tokens_earned: number | null
+          total_losses: number | null
+          total_wins: number | null
+          updated_at: string | null
+          user_id: string
+          videos_uploaded: number | null
+        }
+        Insert: {
+          battles_participated?: number | null
+          created_at?: string | null
+          id?: string
+          tokens_earned?: number | null
+          total_losses?: number | null
+          total_wins?: number | null
+          updated_at?: string | null
+          user_id: string
+          videos_uploaded?: number | null
+        }
+        Update: {
+          battles_participated?: number | null
+          created_at?: string | null
+          id?: string
+          tokens_earned?: number | null
+          total_losses?: number | null
+          total_wins?: number | null
+          updated_at?: string | null
+          user_id?: string
+          videos_uploaded?: number | null
+        }
+        Relationships: []
       }
       user_subscriptions: {
         Row: {
