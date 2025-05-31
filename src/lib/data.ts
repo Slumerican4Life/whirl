@@ -1,3 +1,4 @@
+
 import { faker } from '@faker-js/faker';
 
 export interface Video {
@@ -11,16 +12,6 @@ export interface Video {
   dislikes: number;
   comments: number;
   timestamp: string;
-}
-
-export interface Battle {
-  id: string;
-  category: string;
-  video1Id: string;
-  video2Id: string;
-  startTime: Date;
-  endTime: Date;
-  status: string;
 }
 
 export interface Badge {
@@ -103,16 +94,10 @@ export const mockUsers: User[] = [
   },
 ];
 
-export const mockBattles: Battle[] = [];
-
 export const mockVideos: Video[] = [];
 
 // Export videos array AFTER mockVideos is defined - this fixes the error!
 export const videos = mockVideos;
-
-export const getBattle = (id: string) => {
-  return mockBattles.find((battle) => battle.id === id);
-};
 
 export const getVideo = (id: string) => {
   return mockVideos.find((video) => video.id === id);
@@ -122,15 +107,7 @@ export const getUser = (id: string) => {
   return mockUsers.find((user) => user.id === id);
 };
 
-export const getActiveBattles = (): Battle[] => {
-  return [];
-};
-
 export const getVideosByCategory = (category: Category | "All"): Video[] => {
-  return [];
-};
-
-export const getBattlesByCategory = (category: string) => {
   return [];
 };
 

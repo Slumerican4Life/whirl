@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { getBattlesByCategory, getVideosByCategory, videos, Battle } from "@/lib/data";
+import { getBattlesByCategory } from "@/lib/battle-queries";
+import { Battle } from "@/lib/battle-queries";
 import NavBar from "@/components/NavBar";
 import BattleCard from "@/components/BattleCard";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,12 @@ const SlumericanPage = () => {
   const [battles, setBattles] = useState<Battle[]>([]);
   
   useEffect(() => {
-    const slumericanBattles = getBattlesByCategory('Slumerican');
-    setBattles(slumericanBattles);
+    const loadSlumericanBattles = async () => {
+      const slumericanBattles = await getBattlesByCategory('Slumerican');
+      setBattles(slumericanBattles);
+    };
+    
+    loadSlumericanBattles();
   }, []);
 
   return (

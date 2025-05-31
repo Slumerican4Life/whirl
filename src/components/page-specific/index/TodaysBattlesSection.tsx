@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Battle, Category } from '@/lib/data';
+import { Category } from '@/lib/data';
+import { Battle } from '@/lib/battle-queries';
 import BattleCard from '@/components/BattleCard';
 import CategoryFilter from '@/components/CategoryFilter';
 import { Swords, TrendingUp } from 'lucide-react';

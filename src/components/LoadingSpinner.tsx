@@ -79,13 +79,12 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         {/* Glow Background */}
         <div className={`absolute inset-0 ${logoSizes[size]} bg-purple-500/30 rounded-full blur-xl animate-pulse`}></div>
         
-        {/* Main Logo - Using actual logo instead of CSS creation */}
-        <div className={`relative ${logoSizes[size]} bg-black rounded-full border-2 border-purple-500 flex items-center justify-center overflow-hidden animate-pulse`}>
-          <img 
-            src="/placeholder.svg" 
-            alt="Whirl-Win Logo" 
-            className="w-full h-full object-contain p-2"
-          />
+        {/* Slumbucket Purple Power Fist Logo */}
+        <div className={`relative ${logoSizes[size]} bg-gradient-to-br from-purple-600 to-purple-800 rounded-full border-2 border-purple-400 flex items-center justify-center overflow-hidden animate-pulse shadow-2xl`}>
+          {/* Purple Power Fist Icon */}
+          <div className="text-white text-4xl md:text-5xl lg:text-6xl">
+            ✊
+          </div>
         </div>
       </div>
 
@@ -95,8 +94,8 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           <h2 className={`font-bold text-white mb-2 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 text-transparent bg-clip-text animate-pulse ${textSizes[size]}`}>
             Whirl-Win
           </h2>
-          <p className={`text-gray-300 mb-4 ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>
-            powered by Slumbucket
+          <p className={`text-purple-300 mb-4 font-semibold ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>
+            powered by <span className="text-purple-400">Slumbucket</span>
           </p>
           
           {/* Random Inspirational Loading Tip */}

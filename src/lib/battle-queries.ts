@@ -85,11 +85,12 @@ export const getBattles = async (): Promise<Battle[]> => {
 
         return {
           ...battle,
+          status: (battle.status || 'pending') as 'active' | 'completed' | 'upcoming',
           vote_counts: {
             video1_votes,
             video2_votes
           }
-        };
+        } as Battle;
       })
     );
 
@@ -161,7 +162,10 @@ export const createBattle = async (
     if (error) throw error;
 
     toast.success("Battle created successfully!");
-    return battle;
+    return {
+      ...battle,
+      status: battle.status as 'active' | 'completed' | 'upcoming'
+    } as Battle;
   } catch (error: any) {
     console.error("Error creating battle:", error);
     toast.error("Failed to create battle");

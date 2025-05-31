@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Battle } from '@/lib/data';
+import { Battle } from '@/lib/battle-queries';
 import BattleCard from '@/components/BattleCard';
 import { Button } from '@/components/ui/button';
 import { Crown, Flame } from 'lucide-react';

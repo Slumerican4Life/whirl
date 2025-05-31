@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Category } from "@/lib/data";
+import { Battle } from "@/lib/battle-queries";
 import NavBar from "@/components/NavBar";
 import AdSenseUnit from "@/components/AdSenseUnit";
 import TokenCTA from "@/components/TokenCTA";
@@ -11,7 +12,6 @@ import TodaysBattlesSection from "@/components/page-specific/index/TodaysBattles
 import ElementalWhirlwind from "@/components/ElementalWhirlwind";
 import { useAuth } from "@/contexts/AuthContext";
 import { getActiveBattles, getBattlesByCategory } from "@/lib/battle-queries";
-import type { Battle } from "@/lib/battle-queries";
 
 const ADS_CLIENT_ID = "ca-pub-5650237599652350";
 
