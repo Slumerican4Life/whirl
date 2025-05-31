@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, Video, Award, User, LogOut, Phone } from "lucide-react";
@@ -174,7 +173,7 @@ const NavBar = () => {
                             <AvatarImage src={user.user_metadata?.avatar_url} />
                             <AvatarFallback>{displayUsername.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
-                          <span className="hidden lg:inline">Profile</span>
+                          <span className="hidden lg:inline text-sm truncate max-w-[150px]">{user?.email}</span>
                         </Button>
                       </Link>
                     </TooltipTrigger>
