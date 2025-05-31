@@ -10,7 +10,7 @@ export interface Battle {
   start_time: string;
   end_time: string;
   status: 'active' | 'completed' | 'upcoming';
-  battle_type?: 'human_vs_human' | 'ai_vs_ai' | 'human_vs_ai';
+  battle_type?: string | null; // Updated to allow string | null
   winner_video_id: string | null;
   created_at: string;
   video1?: {
