@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -56,8 +57,6 @@ export const getBattles = async (): Promise<Battle[]> => {
           title,
           thumbnail_url,
           user_id,
-          content_type,
-          ai_tools_used,
           user_profile:profiles (
             username,
             avatar_url
@@ -68,8 +67,6 @@ export const getBattles = async (): Promise<Battle[]> => {
           title,
           thumbnail_url,
           user_id,
-          content_type,
-          ai_tools_used,
           user_profile:profiles (
             username,
             avatar_url
@@ -83,7 +80,22 @@ export const getBattles = async (): Promise<Battle[]> => {
     // Get vote counts for each battle and filter out battles with missing video data
     const battlesWithVotes = await Promise.all(
       (battles || [])
-        .filter(battle => battle.video1 && battle.video2 && !battle.video1.error && !battle.video2.error) // Only include battles with valid video data
+        .filter(battle => {
+          // Check if both videos exist and don't have errors
+          const hasValidVideo1 = battle.video1 && 
+            typeof battle.video1 === 'object' && 
+            !('error' in battle.video1) &&
+            battle.video1.id && 
+            battle.video1.title;
+          
+          const hasValidVideo2 = battle.video2 && 
+            typeof battle.video2 === 'object' && 
+            !('error' in battle.video2) &&
+            battle.video2.id && 
+            battle.video2.title;
+            
+          return hasValidVideo1 && hasValidVideo2;
+        })
         .map(async (battle) => {
           const { data: votes } = await supabase
             .from('votes')
@@ -100,7 +112,7 @@ export const getBattles = async (): Promise<Battle[]> => {
               video1_votes,
               video2_votes
             }
-          } as Battle;
+          };
         })
     );
 
