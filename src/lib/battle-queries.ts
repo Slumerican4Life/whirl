@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -10,6 +9,7 @@ export interface Battle {
   start_time: string;
   end_time: string;
   status: 'active' | 'completed' | 'upcoming';
+  battle_type?: 'human_vs_human' | 'ai_vs_ai' | 'human_vs_ai';
   winner_video_id: string | null;
   created_at: string;
   video1?: {
@@ -17,6 +17,8 @@ export interface Battle {
     title: string;
     thumbnail_url: string;
     user_id: string;
+    content_type?: 'human' | 'ai_assisted' | 'ai_generated';
+    ai_tools_used?: string[];
     user_profile?: {
       username: string;
       avatar_url: string;
@@ -27,6 +29,8 @@ export interface Battle {
     title: string;
     thumbnail_url: string;
     user_id: string;
+    content_type?: 'human' | 'ai_assisted' | 'ai_generated';
+    ai_tools_used?: string[];
     user_profile?: {
       username: string;
       avatar_url: string;
@@ -52,6 +56,8 @@ export const getBattles = async (): Promise<Battle[]> => {
           title,
           thumbnail_url,
           user_id,
+          content_type,
+          ai_tools_used,
           user_profile:profiles (
             username,
             avatar_url
@@ -62,6 +68,8 @@ export const getBattles = async (): Promise<Battle[]> => {
           title,
           thumbnail_url,
           user_id,
+          content_type,
+          ai_tools_used,
           user_profile:profiles (
             username,
             avatar_url
@@ -100,6 +108,16 @@ export const getBattles = async (): Promise<Battle[]> => {
     toast.error("Failed to load battles");
     return [];
   }
+};
+
+/**
+ * Gets battles by battle type (Human vs Human, AI vs AI, Human vs AI)
+ */
+export const getBattlesByType = async (battleType: 'human_vs_human' | 'ai_vs_ai' | 'human_vs_ai'): Promise<Battle[]> => {
+  const battles = await getBattles();
+  return battles.filter(battle => 
+    battle.battle_type === battleType && battle.status === 'active'
+  );
 };
 
 /**

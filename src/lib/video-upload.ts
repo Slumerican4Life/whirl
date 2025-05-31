@@ -3,18 +3,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { generateThumbnail, dataUrlToBlob } from "./thumbnails";
 
+interface UploadOptions {
+  contentType?: 'human' | 'ai_assisted' | 'ai_generated';
+  aiToolsUsed?: string[];
+  userDeclaredAI?: boolean;
+}
+
 /**
  * Uploads a video to the storage bucket, generates a thumbnail,
  * and inserts a record into the videos table
  * @param file Video file to upload
  * @param title Title of the video
  * @param category Category of the video
+ * @param options Additional options for AI content detection
  * @returns Promise with URLs of the uploaded video and thumbnail, and video ID
  */
 export const uploadVideo = async (
   file: File, 
   title: string, 
-  category: string
+  category: string,
+  options: UploadOptions = {}
 ): Promise<{ video_url: string, thumbnailUrl: string, videoId: string }> => {
   try {
     // Check authentication first
@@ -71,18 +79,22 @@ export const uploadVideo = async (
       // Continue without thumbnail if it fails
     }
     
-    // Insert record into videos table
+    // Insert record into videos table with AI detection fields
     const { data: newVideo, error: insertError } = await supabase
       .from('videos')
       .insert({
         user_id: user.id,
-        video_url: videoPublicUrl, // Changed from 'url' to 'video_url'
+        video_url: videoPublicUrl,
         thumbnail_url: thumbnailUrl || null,
-        title: title, // Added title
-        category: category || null, // Added category
+        title: title,
+        category: category || null,
+        content_type: options.contentType || 'human',
+        ai_tools_used: options.aiToolsUsed || null,
+        user_declared_ai: options.userDeclaredAI || false,
+        ai_confidence_score: options.contentType === 'human' ? 0 : 0.5 // Basic scoring
       })
       .select('id')
-      .single(); // To get the ID of the newly inserted video
+      .single();
     
     if (insertError) {
       throw new Error(`Error inserting video record: ${insertError.message}`);

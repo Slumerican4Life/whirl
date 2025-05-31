@@ -1,4 +1,3 @@
-
 import { faker } from '@faker-js/faker';
 
 export interface Video {
@@ -12,6 +11,9 @@ export interface Video {
   dislikes: number;
   comments: number;
   timestamp: string;
+  content_type?: 'human' | 'ai_assisted' | 'ai_generated';
+  ai_tools_used?: string[];
+  ai_confidence_score?: number;
 }
 
 export interface Badge {
@@ -33,14 +35,36 @@ export type Category =
   | "Freestyle"
   | "Music Video"
   | "Behind the Scenes"
-  | "Live Performance";
+  | "Live Performance"
+  | "Dance"
+  | "Beatbox"
+  | "Comedy";
+
+export type ContentType = 'human' | 'ai_assisted' | 'ai_generated';
+export type BattleType = 'human_vs_human' | 'ai_vs_ai' | 'human_vs_ai';
 
 // Export categories array for components that need it
 export const categories: Category[] = [
   "Freestyle",
   "Music Video", 
   "Behind the Scenes",
-  "Live Performance"
+  "Live Performance",
+  "Dance",
+  "Beatbox",
+  "Comedy"
+];
+
+export const aiTools = [
+  "ChatGPT",
+  "Claude",
+  "Midjourney",
+  "DALL-E",
+  "Suno AI",
+  "Udio",
+  "RunwayML",
+  "ElevenLabs",
+  "Synthesia",
+  "Other"
 ];
 
 export const mockUsers: User[] = [
