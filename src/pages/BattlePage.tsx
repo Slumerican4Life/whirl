@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Battle, getBattleById } from "@/lib/battle-queries";
+import { Battle, getBattle } from "@/lib/battle-queries";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +21,7 @@ const BattlePage = () => {
       if (!id) return;
       
       try {
-        const battleData = await getBattleById(id);
+        const battleData = await getBattle(id);
         setBattle(battleData);
       } catch (error) {
         console.error('Error loading battle:', error);
@@ -60,15 +61,15 @@ const BattlePage = () => {
     );
   }
 
-  // Format the battle times
-  const startTime = new Date(battle.startTime).toLocaleString();
-  const endTime = new Date(battle.endTime).toLocaleString();
+  // Format the battle times using snake_case property names
+  const startTime = new Date(battle.start_time).toLocaleString();
+  const endTime = new Date(battle.end_time).toLocaleString();
   
-  // Check if battle is active
+  // Check if battle is active using snake_case property names
   const now = new Date();
-  const isActive = now > new Date(battle.startTime) && now < new Date(battle.endTime);
-  const isUpcoming = now < new Date(battle.startTime);
-  const isCompleted = now > new Date(battle.endTime);
+  const isActive = now > new Date(battle.start_time) && now < new Date(battle.end_time);
+  const isUpcoming = now < new Date(battle.start_time);
+  const isCompleted = now > new Date(battle.end_time);
 
   return (
     <div className="min-h-screen pb-20 md:pb-0 md:pt-16 swirl-bg">
@@ -102,25 +103,25 @@ const BattlePage = () => {
               <Card className="overflow-hidden bg-black/30">
                 <div className="relative aspect-video">
                   <video
-                    src={battle.video1.url}
-                    poster={battle.video1.thumbnail}
+                    src={battle.video1?.thumbnail_url}
+                    poster={battle.video1?.thumbnail_url}
                     controls
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg">{battle.video1.title}</h3>
+                  <h3 className="font-semibold text-lg">{battle.video1?.title}</h3>
                   <div className="flex items-center mt-2">
                     <img
-                      src={battle.video1.user.avatar}
-                      alt={battle.video1.user.username}
+                      src={battle.video1?.user_profile?.avatar_url || '/placeholder.svg'}
+                      alt={battle.video1?.user_profile?.username || 'User'}
                       className="w-8 h-8 rounded-full mr-2"
                     />
-                    <span>{battle.video1.user.username}</span>
+                    <span>{battle.video1?.user_profile?.username}</span>
                   </div>
                   {isActive && (
                     <div className="mt-4">
-                      <VotingControls battleId={battle.id} videoId={battle.video1.id} />
+                      <VotingControls battleId={battle.id} videoId={battle.video1?.id || ''} />
                     </div>
                   )}
                 </div>
@@ -131,25 +132,25 @@ const BattlePage = () => {
               <Card className="overflow-hidden bg-black/30">
                 <div className="relative aspect-video">
                   <video
-                    src={battle.video2.url}
-                    poster={battle.video2.thumbnail}
+                    src={battle.video2?.thumbnail_url}
+                    poster={battle.video2?.thumbnail_url}
                     controls
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg">{battle.video2.title}</h3>
+                  <h3 className="font-semibold text-lg">{battle.video2?.title}</h3>
                   <div className="flex items-center mt-2">
                     <img
-                      src={battle.video2.user.avatar}
-                      alt={battle.video2.user.username}
+                      src={battle.video2?.user_profile?.avatar_url || '/placeholder.svg'}
+                      alt={battle.video2?.user_profile?.username || 'User'}
                       className="w-8 h-8 rounded-full mr-2"
                     />
-                    <span>{battle.video2.user.username}</span>
+                    <span>{battle.video2?.user_profile?.username}</span>
                   </div>
                   {isActive && (
                     <div className="mt-4">
-                      <VotingControls battleId={battle.id} videoId={battle.video2.id} />
+                      <VotingControls battleId={battle.id} videoId={battle.video2?.id || ''} />
                     </div>
                   )}
                 </div>
