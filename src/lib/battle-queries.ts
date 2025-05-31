@@ -80,26 +80,28 @@ export const getBattles = async (): Promise<Battle[]> => {
 
     if (error) throw error;
 
-    // Get vote counts for each battle
+    // Get vote counts for each battle and filter out battles with missing video data
     const battlesWithVotes = await Promise.all(
-      (battles || []).map(async (battle) => {
-        const { data: votes } = await supabase
-          .from('votes')
-          .select('video_id')
-          .in('video_id', [battle.video1_id, battle.video2_id]);
+      (battles || [])
+        .filter(battle => battle.video1 && battle.video2) // Only include battles with valid video data
+        .map(async (battle) => {
+          const { data: votes } = await supabase
+            .from('votes')
+            .select('video_id')
+            .in('video_id', [battle.video1_id, battle.video2_id]);
 
-        const video1_votes = (votes || []).filter(v => v.video_id === battle.video1_id).length;
-        const video2_votes = (votes || []).filter(v => v.video_id === battle.video2_id).length;
+          const video1_votes = (votes || []).filter(v => v.video_id === battle.video1_id).length;
+          const video2_votes = (votes || []).filter(v => v.video_id === battle.video2_id).length;
 
-        return {
-          ...battle,
-          status: (battle.status || 'pending') as 'active' | 'completed' | 'upcoming',
-          vote_counts: {
-            video1_votes,
-            video2_votes
-          }
-        } as Battle;
-      })
+          return {
+            ...battle,
+            status: (battle.status || 'pending') as 'active' | 'completed' | 'upcoming',
+            vote_counts: {
+              video1_votes,
+              video2_votes
+            }
+          } as Battle;
+        })
     );
 
     return battlesWithVotes;

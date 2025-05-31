@@ -176,7 +176,7 @@ const VideoUpload = () => {
             <Checkbox 
               id="ai-usage"
               checked={usedAI}
-              onCheckedChange={setUsedAI}
+              onCheckedChange={(checked) => setUsedAI(checked === true)}
             />
             <Label htmlFor="ai-usage" className="flex items-center gap-2">
               <Bot className="w-4 h-4" />
