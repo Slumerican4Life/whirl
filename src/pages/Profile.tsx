@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,8 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { supabase } from "@/integrations/supabase/client";
 import TokenPurchaseOptions from "@/components/TokenPurchaseOptions";
 import TwoFactorSetup from "@/components/TwoFactorSetup";
-import { Coins, Film, Shield } from "lucide-react";
+import StripeConnectButton from "@/components/StripeConnectButton";
+import { Coins, Film, Shield, DollarSign } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserVideos } from "@/lib/video-queries"; 
 import type { Video as DbVideo } from "@/lib/types"; 
@@ -40,6 +42,8 @@ const ProfilePage = () => {
   const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
   const [loadingBadges, setLoadingBadges] = useState(true);
   const [userStats, setUserStats] = useState({ wins: 0, losses: 0, battles: 0 });
+  const [stripeConnected, setStripeConnected] = useState(false);
+  const [loadingStripe, setLoadingStripe] = useState(true);
   
   // Fetch user's videos
   const { data: userVideos, isLoading: videosLoading, error: videosError } = useQuery({
@@ -87,6 +91,7 @@ const ProfilePage = () => {
     const fetchUserData = async () => {
       if (user?.id) {
         setLoadingBadges(true);
+        setLoadingStripe(true);
         try {
           // Fetch user badges
           const badges = await getUserBadges(user.id);
@@ -107,12 +112,22 @@ const ProfilePage = () => {
             });
           }
 
+          // Fetch Stripe connection status
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_stripe_connected')
+            .eq('id', user.id)
+            .single();
+
+          setStripeConnected(profile?.is_stripe_connected || false);
+
           // Check and award new badges based on current stats
           await checkAndAwardBadges(user.id);
         } catch (error) {
           console.error("Error fetching user data:", error);
         } finally {
           setLoadingBadges(false);
+          setLoadingStripe(false);
         }
       }
     };
@@ -121,6 +136,18 @@ const ProfilePage = () => {
       fetchUserData();
     }
   }, [user, authLoading]);
+
+  const handleStripeConnectionChange = async () => {
+    if (user?.id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_stripe_connected')
+        .eq('id', user.id)
+        .single();
+
+      setStripeConnected(profile?.is_stripe_connected || false);
+    }
+  };
 
   if (authLoading || (user && (loadingBalance || videosLoading))) {
     return (
@@ -203,9 +230,13 @@ const ProfilePage = () => {
           </div>
           
           <Tabs defaultValue="videos" className="mb-8">
-            <TabsList className="grid grid-cols-3 mb-6 mx-auto max-w-lg bg-background/50 border border-whirl-blue-dark">
+            <TabsList className="grid grid-cols-4 mb-6 mx-auto max-w-lg bg-background/50 border border-whirl-blue-dark">
               <TabsTrigger value="videos" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">My Videos</TabsTrigger>
               <TabsTrigger value="badges" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">My Badges</TabsTrigger>
+              <TabsTrigger value="earnings" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">
+                <DollarSign className="w-4 h-4 mr-1" />
+                Earnings
+              </TabsTrigger>
               <TabsTrigger value="security" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">
                 <Shield className="w-4 h-4 mr-1" />
                 Security
@@ -292,6 +323,50 @@ const ProfilePage = () => {
                     <p className="text-muted-foreground">No badges earned yet. Keep battling!</p>
                   </div>
                 )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="earnings">
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-whirl-text-bright mb-2">Creator Earnings</h3>
+                  <p className="text-gray-300 mb-6">
+                    Connect your Stripe account to receive tips and battle winnings directly
+                  </p>
+                </div>
+
+                <div className="flex justify-center">
+                  {loadingStripe ? (
+                    <Skeleton className="h-10 w-48 bg-slate-700" />
+                  ) : (
+                    <StripeConnectButton 
+                      isConnected={stripeConnected}
+                      onConnectionChange={handleStripeConnectionChange}
+                    />
+                  )}
+                </div>
+
+                <div className="bg-card/50 p-6 rounded-lg border border-whirl-blue-dark">
+                  <h4 className="font-semibold mb-4 text-whirl-text-bright">How it works:</h4>
+                  <ul className="space-y-2 text-sm text-gray-300">
+                    <li className="flex items-start gap-2">
+                      <span className="text-whirl-orange">•</span>
+                      <span>Receive 90% of all tips from your fans</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-whirl-orange">•</span>
+                      <span>Earn bonus tokens for winning battles</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-whirl-orange">•</span>
+                      <span>Payments processed securely through Stripe</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-whirl-orange">•</span>
+                      <span>Instant payouts to your connected bank account</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </TabsContent>
             

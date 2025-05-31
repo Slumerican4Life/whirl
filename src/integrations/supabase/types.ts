@@ -79,6 +79,7 @@ export type Database = {
       }
       battles: {
         Row: {
+          battle_type: string | null
           category: string | null
           created_at: string | null
           end_time: string | null
@@ -91,6 +92,7 @@ export type Database = {
           winner_video_id: string | null
         }
         Insert: {
+          battle_type?: string | null
           category?: string | null
           created_at?: string | null
           end_time?: string | null
@@ -103,6 +105,7 @@ export type Database = {
           winner_video_id?: string | null
         }
         Update: {
+          battle_type?: string | null
           category?: string | null
           created_at?: string | null
           end_time?: string | null
@@ -248,6 +251,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
+          is_stripe_connected: boolean | null
           stripe_connect_id: string | null
           updated_at: string
           username: string | null
@@ -256,6 +260,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id: string
+          is_stripe_connected?: boolean | null
           stripe_connect_id?: string | null
           updated_at?: string
           username?: string | null
@@ -264,6 +269,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          is_stripe_connected?: boolean | null
           stripe_connect_id?: string | null
           updated_at?: string
           username?: string | null

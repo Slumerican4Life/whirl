@@ -1,97 +1,110 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Gift, Upload, Heart, MessageCircle, Zap, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { toast } from "sonner";
+import { Coins, Loader2, Zap } from "lucide-react";
+import { TOKEN_PACKAGES } from "@/lib/stripe-prices";
 
 const TokenPurchaseOptions = () => {
-  return (
-    <div className="relative">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl"></div>
+  const { user } = useRequireAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handlePurchase = async (priceId: string, tokens: number) => {
+    if (!user) {
+      toast.error("Please log in to purchase tokens");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-token-checkout-session', {
+        body: {
+          priceId,
+          metadata: {
+            user_id: user.id,
+            type: 'tokens'
+          }
+        },
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      // Redirect to Stripe checkout
+      window.location.href = data.url;
       
-      {/* Content */}
-      <div className="relative glass-dark p-8 rounded-3xl shadow-2xl border border-white/10">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="bg-gradient-to-br from-green-400 to-blue-500 p-3 rounded-2xl">
-              <Gift className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-3xl font-black text-white tracking-tight">Everything FREE</h2>
-          </div>
-          <p className="text-gray-300 text-lg">No tokens, no payments, just pure creativity!</p>
-        </div>
+    } catch (error: any) {
+      console.error("Error creating checkout session:", error);
+      toast.error("Failed to create checkout session");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        {/* Free Features */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="modern-card p-6 rounded-2xl text-center transition-all duration-300">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-              <Upload className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Upload Videos</h3>
-            <div className="text-3xl font-black text-green-400 mb-2">FREE</div>
-            <div className="text-sm text-gray-400 mb-4">Always</div>
-            <div className="bg-green-500/20 text-green-300 text-xs px-3 py-1 rounded-full mb-4 inline-block">
-              No limits
-            </div>
-            <Link to="/upload">
-              <Button className="w-full bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 shadow-lg">
-                <Upload className="w-4 h-4 mr-2" />
-                Start Uploading
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-whirl-text-bright mb-2">Get More Tokens</h2>
+        <p className="text-gray-300">
+          Purchase tokens to vote in battles, boost your videos, and unlock avatar customizations
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {TOKEN_PACKAGES.map((pkg) => (
+          <Card 
+            key={pkg.priceId} 
+            className={`relative bg-background/70 border-whirl-blue-dark hover:bg-background/90 transition-all ${
+              pkg.popular ? 'ring-2 ring-whirl-purple' : ''
+            }`}
+          >
+            {pkg.popular && (
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-whirl-purple text-white">
+                Most Popular
+              </Badge>
+            )}
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2 text-whirl-text-bright">
+                <Coins className="w-5 h-5 text-whirl-orange" />
+                {pkg.tokens} Tokens
+              </CardTitle>
+              <CardDescription className="text-2xl font-bold text-whirl-orange">
+                {pkg.price}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => handlePurchase(pkg.priceId, pkg.tokens)}
+                disabled={loading}
+                className="w-full bg-whirl-purple hover:bg-whirl-purple/80 text-white"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Purchase
+                  </>
+                )}
               </Button>
-            </Link>
-          </div>
-
-          <div className="modern-card p-6 rounded-2xl text-center transition-all duration-300 ring-2 ring-blue-500">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-1 rounded-full text-white text-xs font-bold flex items-center gap-1">
-                <Heart className="w-3 h-3" />
-                POPULAR
+              <div className="mt-3 text-center">
+                <p className="text-xs text-gray-400">
+                  {(pkg.tokens / (parseFloat(pkg.price.replace('$', '')) * 100) * 100).toFixed(1)} tokens per $
+                </p>
               </div>
-            </div>
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-              <Heart className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Vote & Like</h3>
-            <div className="text-3xl font-black text-blue-400 mb-2">FREE</div>
-            <div className="text-sm text-gray-400 mb-4">Forever</div>
-            <div className="bg-blue-500/20 text-blue-300 text-xs px-3 py-1 rounded-full mb-4 inline-block">
-              Unlimited voting
-            </div>
-            <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 shadow-lg">
-              <Heart className="w-4 h-4 mr-2" />
-              Start Voting
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          <div className="modern-card p-6 rounded-2xl text-center transition-all duration-300">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <MessageCircle className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Comment & Chat</h3>
-            <div className="text-3xl font-black text-purple-400 mb-2">FREE</div>
-            <div className="text-sm text-gray-400 mb-4">Always</div>
-            <div className="bg-purple-500/20 text-purple-300 text-xs px-3 py-1 rounded-full mb-4 inline-block">
-              Express yourself
-            </div>
-            <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 rounded-xl transition-all hover:scale-105 shadow-lg">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Join Conversations
-            </Button>
-          </div>
-        </div>
-
-        {/* Footer info */}
-        <div className="glass rounded-2xl p-6 border border-white/5">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-5 h-5 text-green-400" />
-            <span className="text-green-400 font-semibold">100% Free Forever</span>
-          </div>
-          <p className="text-sm text-gray-400 text-center leading-relaxed">
-            SlumBucket believes in free expression. Upload videos, vote on battles, comment, and showcase your talent - 
-            all completely free with no hidden costs or token requirements.
-          </p>
-        </div>
+      <div className="text-center text-xs text-gray-400">
+        <p>Secure payment powered by Stripe • Tokens are added instantly after purchase</p>
       </div>
     </div>
   );
