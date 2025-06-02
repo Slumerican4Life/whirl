@@ -5,9 +5,17 @@ import SlumericanCornerSection from "@/components/page-specific/index/Slumerican
 import ViralContentSection from "@/components/ViralContentSection";
 import TruthSectionPreview from "@/components/TruthSectionPreview";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useQuery } from "@tanstack/react-query";
+import { getBattlesByCategory } from "@/lib/battle-queries";
 
 const Index = () => {
   const { user } = useRequireAuth();
+
+  // Fetch Slumerican battles for the corner section
+  const { data: slumericanBattles = [] } = useQuery({
+    queryKey: ['slumerican-battles'],
+    queryFn: () => getBattlesByCategory('slumerican'),
+  });
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -15,7 +23,7 @@ const Index = () => {
       <TodaysBattlesSection />
       <ViralContentSection />
       <TruthSectionPreview />
-      <SlumericanCornerSection />
+      <SlumericanCornerSection battles={slumericanBattles} />
     </div>
   );
 };

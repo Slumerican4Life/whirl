@@ -7,11 +7,11 @@ export interface ViralContent {
   platform: string;
   external_id: string;
   video_url: string;
-  thumbnail_url?: string;
+  thumbnail_url: string | null;
   title: string;
-  description?: string;
-  view_count?: number;
-  engagement_score?: number;
+  description: string | null;
+  view_count: number;
+  engagement_score: number;
   fetched_at: string;
   processed: boolean;
 }
@@ -23,7 +23,7 @@ export interface AIAgent {
   description: string;
   specialization: string;
   personality: Record<string, any>;
-  avatar_url?: string;
+  avatar_url: string | null;
   created_at: string;
 }
 
@@ -36,22 +36,66 @@ export interface TruthAnalysis {
   verdict: string;
   evidence_links: any[];
   created_at: string;
-  agent?: AIAgent;
+  agent: AIAgent;
 }
 
 /**
- * Fetch viral content from database
+ * Fetches viral content with mock data
  */
 export const getViralContent = async (): Promise<ViralContent[]> => {
   try {
     const { data, error } = await supabase
       .from('viral_content')
       .select('*')
-      .order('engagement_score', { ascending: false })
-      .limit(20);
+      .order('fetched_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+
+    // If no data in database, use mock data for demonstration
+    if (!data || data.length === 0) {
+      const mockData: ViralContent[] = [
+        {
+          id: 'mock-1',
+          platform: 'youtube',
+          external_id: 'mock-yt-1',
+          video_url: 'https://example.com/video1',
+          thumbnail_url: 'https://via.placeholder.com/300x200',
+          title: 'Breaking: New Conspiracy Theory Emerges',
+          description: 'Deep dive into the latest theories circulating online',
+          view_count: 1500000,
+          engagement_score: 85,
+          fetched_at: new Date().toISOString(),
+          processed: false
+        },
+        {
+          id: 'mock-2',
+          platform: 'tiktok',
+          external_id: 'mock-tk-1',
+          video_url: 'https://example.com/video2',
+          thumbnail_url: 'https://via.placeholder.com/300x200',
+          title: 'Viral Yelawolf Performance Goes Wild',
+          description: 'Latest Slumerican performance that broke the internet',
+          view_count: 2300000,
+          engagement_score: 92,
+          fetched_at: new Date().toISOString(),
+          processed: false
+        }
+      ];
+
+      // Use fetch API to call our edge function
+      const response = await fetch('/api/fetch-viral-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        console.log('Viral content fetch triggered');
+      }
+
+      return mockData;
+    }
+
+    return data;
   } catch (error: any) {
     console.error("Error fetching viral content:", error);
     toast.error("Failed to load viral content");
@@ -60,32 +104,7 @@ export const getViralContent = async (): Promise<ViralContent[]> => {
 };
 
 /**
- * Trigger viral content fetch
- */
-export const fetchNewViralContent = async (): Promise<boolean> => {
-  try {
-    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/fetch-viral-content`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${supabase.supabaseKey}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) throw new Error('Failed to fetch viral content');
-    
-    const result = await response.json();
-    toast.success(`Fetched ${result.fetched} new viral videos`);
-    return true;
-  } catch (error: any) {
-    console.error("Error triggering viral fetch:", error);
-    toast.error("Failed to fetch new content");
-    return false;
-  }
-};
-
-/**
- * Get all AI agents
+ * Gets AI agents for Truth Section
  */
 export const getAIAgents = async (): Promise<AIAgent[]> => {
   try {
@@ -95,7 +114,13 @@ export const getAIAgents = async (): Promise<AIAgent[]> => {
       .order('created_at', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+
+    return (data || []).map(agent => ({
+      ...agent,
+      personality: typeof agent.personality === 'string' 
+        ? JSON.parse(agent.personality) 
+        : agent.personality || {}
+    }));
   } catch (error: any) {
     console.error("Error fetching AI agents:", error);
     toast.error("Failed to load AI agents");
@@ -104,31 +129,9 @@ export const getAIAgents = async (): Promise<AIAgent[]> => {
 };
 
 /**
- * Analyze content with AI
+ * Gets truth analyses from AI agents
  */
-export const analyzeContent = async (videoId: string, title: string, description?: string) => {
-  try {
-    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/analyze-content`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${supabase.supabaseKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ videoId, title, description }),
-    });
-
-    if (!response.ok) throw new Error('Failed to analyze content');
-    return await response.json();
-  } catch (error: any) {
-    console.error("Error analyzing content:", error);
-    return null;
-  }
-};
-
-/**
- * Get truth analyses for a video
- */
-export const getTruthAnalyses = async (truthVideoId: string): Promise<TruthAnalysis[]> => {
+export const getTruthAnalyses = async (): Promise<TruthAnalysis[]> => {
   try {
     const { data, error } = await supabase
       .from('truth_analyses')
@@ -136,13 +139,35 @@ export const getTruthAnalyses = async (truthVideoId: string): Promise<TruthAnaly
         *,
         agent:ai_agents(*)
       `)
-      .eq('truth_video_id', truthVideoId)
-      .order('confidence_score', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(10);
 
     if (error) throw error;
-    return data || [];
+
+    // Use fetch API to call our edge function for content analysis
+    const response = await fetch('/api/analyze-content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        videoId: 'mock-video',
+        title: 'Sample Truth Analysis',
+        description: 'Testing our truth analysis system'
+      })
+    });
+
+    if (response.ok) {
+      console.log('Content analysis triggered');
+    }
+
+    return (data || []).map(analysis => ({
+      ...analysis,
+      evidence_links: Array.isArray(analysis.evidence_links) 
+        ? analysis.evidence_links 
+        : []
+    }));
   } catch (error: any) {
     console.error("Error fetching truth analyses:", error);
+    toast.error("Failed to load truth analyses");
     return [];
   }
 };

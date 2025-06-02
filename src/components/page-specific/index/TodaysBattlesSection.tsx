@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +23,10 @@ const TodaysBattlesSection = () => {
 
   const displayBattles = showAll ? battles : battles?.slice(0, 6);
   const hasNoBattles = !battles || battles.length === 0;
+
+  const handleRefreshClick = () => {
+    refetchBattles();
+  };
 
   const generateMockBattle = () => {
     if (!viralContent || viralContent.length < 2) return null;
@@ -61,7 +64,7 @@ const TodaysBattlesSection = () => {
           </div>
           <div className="flex gap-2">
             <Button 
-              onClick={refetchBattles}
+              onClick={handleRefreshClick}
               variant="outline" 
               className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
             >
