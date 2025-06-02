@@ -19,27 +19,8 @@ const BattleArenaSection = () => {
     queryFn: getBattles,
   });
 
-  // Get the most active battle or create a mock one
-  const featuredBattle = battles?.[0] || {
-    id: 'featured-battle',
-    video1: {
-      id: 'demo-1',
-      title: 'Epic Dance Battle Entry',
-      thumbnail_url: 'https://via.placeholder.com/400x600',
-      video_url: 'https://example.com/video1.mp4',
-      vote_count: 127
-    },
-    video2: {
-      id: 'demo-2', 
-      title: 'Street Performance Showdown',
-      thumbnail_url: 'https://via.placeholder.com/400x600',
-      video_url: 'https://example.com/video2.mp4',
-      vote_count: 89
-    },
-    category: 'viral',
-    status: 'active',
-    created_at: new Date().toISOString()
-  };
+  // Get the most active battle
+  const featuredBattle = battles?.[0];
 
   if (isLoading) {
     return (
@@ -52,6 +33,17 @@ const BattleArenaSection = () => {
               <div className="h-96 bg-gray-700 rounded-lg"></div>
             </div>
           </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!featuredBattle) {
+    return (
+      <section className="py-16 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 relative">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold text-white mb-4">No battles available</h2>
+          <p className="text-gray-400">Check back later for exciting video battles!</p>
         </div>
       </section>
     );
@@ -99,14 +91,14 @@ const BattleArenaSection = () => {
                       <div className="relative aspect-[9/16] bg-gray-700 rounded-t-lg overflow-hidden">
                         <img 
                           src={featuredBattle.video1?.thumbnail_url || '/placeholder.svg'}
-                          alt={featuredBattle.video1?.title}
+                          alt={featuredBattle.video1?.title || 'Video 1'}
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                           <Play className="h-16 w-16 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <Badge className="absolute top-4 left-4 bg-blue-500">
-                          {featuredBattle.video1?.vote_count || 0} votes
+                          {featuredBattle.vote_counts?.video1_votes || 0} votes
                         </Badge>
                       </div>
                       <div className="p-4">
@@ -144,14 +136,14 @@ const BattleArenaSection = () => {
                       <div className="relative aspect-[9/16] bg-gray-700 rounded-t-lg overflow-hidden">
                         <img 
                           src={featuredBattle.video2?.thumbnail_url || '/placeholder.svg'}
-                          alt={featuredBattle.video2?.title}
+                          alt={featuredBattle.video2?.title || 'Video 2'}
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                           <Play className="h-16 w-16 text-white opacity-80 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <Badge className="absolute top-4 right-4 bg-red-500">
-                          {featuredBattle.video2?.vote_count || 0} votes
+                          {featuredBattle.vote_counts?.video2_votes || 0} votes
                         </Badge>
                       </div>
                       <div className="p-4">
@@ -180,13 +172,12 @@ const BattleArenaSection = () => {
                   <Clock className="h-5 w-5 text-yellow-400" />
                   <span className="text-gray-300">Battle ends in 2 days, 14 hours</span>
                 </div>
-                <VotingControls 
-                  videoId={selectedVideo === 1 ? featuredBattle.video1?.id : featuredBattle.video2?.id}
-                  currentVotes={selectedVideo === 1 ? featuredBattle.video1?.vote_count : featuredBattle.video2?.vote_count}
-                  onVote={() => {
-                    console.log('Vote submitted for video', selectedVideo);
-                  }}
-                />
+                {selectedVideo && (
+                  <VotingControls 
+                    battleId={featuredBattle.id}
+                    videoId={selectedVideo === 1 ? featuredBattle.video1_id : featuredBattle.video2_id}
+                  />
+                )}
               </div>
 
               {/* Ad Integration */}
