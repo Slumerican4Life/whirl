@@ -11,12 +11,10 @@ interface SlumericanCornerSectionProps {
 }
 
 const SlumericanCornerSection: React.FC<SlumericanCornerSectionProps> = ({ battles }) => {
-  if (battles.length === 0) {
-    return null;
-  }
-
+  console.log('SlumericanCornerSection battles:', battles);
+  
   return (
-    <section className="mb-16 relative">
+    <section className="mb-16 relative container mx-auto px-4">
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-r from-black via-whirl-slumerican-black to-black rounded-3xl opacity-80"></div>
       <div className="absolute inset-0 bg-gradient-to-br from-whirl-slumerican-red/20 via-transparent to-whirl-slumerican-gold/20 rounded-3xl"></div>
@@ -59,14 +57,36 @@ const SlumericanCornerSection: React.FC<SlumericanCornerSectionProps> = ({ battl
           </p>
         </div>
         
-        {/* Battles Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {battles.map((battle) => (
-            <div key={battle.id} className="transform transition-all hover:scale-[1.02]">
-              <BattleCard battle={battle} />
+        {/* Battles Grid or Placeholder */}
+        {battles.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {battles.map((battle) => (
+              <div key={battle.id} className="transform transition-all hover:scale-[1.02]">
+                <BattleCard battle={battle} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-black/30 rounded-lg border border-whirl-slumerican-red/20">
+            <div className="mb-4">
+              <Crown className="w-16 h-16 text-whirl-slumerican-gold mx-auto mb-4" />
             </div>
-          ))}
-        </div>
+            <h3 className="text-2xl font-bold text-white mb-4">
+              <span className="bg-gradient-to-r from-whirl-slumerican-red to-whirl-slumerican-gold text-transparent bg-clip-text">
+                Slumerican Battles Coming Soon
+              </span>
+            </h3>
+            <p className="text-lg text-gray-300 mb-6">
+              Be the first to drop your Slumerican content and represent the culture!
+            </p>
+            <Link to="/upload" className="inline-block">
+              <Button className="bg-gradient-to-r from-whirl-slumerican-red to-whirl-slumerican-gold hover:from-whirl-slumerican-gold hover:to-whirl-slumerican-red font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 shadow-lg text-lg">
+                <Flame className="w-5 h-5 mr-2" />
+                Submit Slumerican Video
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

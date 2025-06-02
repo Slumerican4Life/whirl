@@ -19,6 +19,8 @@ const Index = () => {
     queryFn: () => getBattlesByCategory('slumerican'),
   });
 
+  console.log('Slumerican battles:', slumericanBattles);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white relative">
       {/* Animated Background */}
