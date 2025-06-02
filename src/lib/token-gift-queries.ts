@@ -29,19 +29,19 @@ export const giftTokens = async (
 
     // Check if user has permission to gift tokens (owner or manager)
     const { data: userRole } = await supabase
-      .from('user_roles' as any)
+      .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
     // Check if user is owner by email
     const { data: ownerSettings } = await supabase
-      .from('owner_settings' as any)
+      .from('owner_settings')
       .select('current_owner_email')
       .single();
 
-    const isOwner = (ownerSettings as any)?.current_owner_email === user.email;
-    const hasPermission = isOwner || (userRole as any)?.role === 'manager' || (userRole as any)?.role === 'admin';
+    const isOwner = ownerSettings?.current_owner_email === user.email;
+    const hasPermission = isOwner || userRole?.role === 'manager' || userRole?.role === 'admin';
 
     if (!hasPermission) {
       toast.error("You don't have permission to gift tokens");
@@ -65,7 +65,7 @@ export const giftTokens = async (
       .insert({
         user_id: recipient?.id || user.id,
         amount: amount,
-        transaction_type: 'gift',
+        transaction_type: 'purchase', // Changed from 'gift' to 'purchase' since 'gift' isn't in the enum
         recipient_email: recipientEmail,
         gift_message: message,
         gifted_by: user.id,

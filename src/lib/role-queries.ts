@@ -39,7 +39,7 @@ export const hasRole = async (role: AppRole): Promise<boolean> => {
 
     // For other roles, check user_roles table
     const { data, error } = await supabase
-      .from('user_roles' as any)
+      .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .eq('role', role)
@@ -74,14 +74,14 @@ export const getUserRole = async (userId?: string): Promise<AppRole> => {
 
     // Get highest role from user_roles table
     const { data } = await supabase
-      .from('user_roles' as any)
+      .from('user_roles')
       .select('role')
       .eq('user_id', targetUserId)
       .order('role', { ascending: true })
       .limit(1)
       .single();
 
-    return (data as any)?.role || 'user';
+    return data?.role || 'user';
   } catch (error) {
     console.error("Error getting user role:", error);
     return 'user';
@@ -98,11 +98,11 @@ export const isCurrentOwner = async (): Promise<boolean> => {
 
     // Check against owner_settings table
     const { data } = await supabase
-      .from('owner_settings' as any)
+      .from('owner_settings')
       .select('current_owner_email')
       .single();
 
-    return (data as any)?.current_owner_email === user.email;
+    return data?.current_owner_email === user.email;
   } catch (error) {
     console.error("Error checking owner status:", error);
     return false;
@@ -132,7 +132,7 @@ export const assignRole = async (userId: string, role: AppRole, reason?: string)
 
     // Assign new role
     const { error } = await supabase
-      .from('user_roles' as any)
+      .from('user_roles')
       .upsert({
         user_id: userId,
         role: role,
@@ -144,7 +144,7 @@ export const assignRole = async (userId: string, role: AppRole, reason?: string)
 
     // Log the role change
     await supabase
-      .from('role_change_log' as any)
+      .from('role_change_log')
       .insert({
         target_user_id: userId,
         previous_role: currentRole,
@@ -181,7 +181,7 @@ export const transferOwnership = async (newOwnerEmail: string): Promise<boolean>
 
     // Update owner settings
     const { error } = await supabase
-      .from('owner_settings' as any)
+      .from('owner_settings')
       .update({ 
         current_owner_email: newOwnerEmail,
         updated_at: new Date().toISOString()
@@ -192,7 +192,7 @@ export const transferOwnership = async (newOwnerEmail: string): Promise<boolean>
 
     // Log the ownership transfer
     await supabase
-      .from('role_change_log' as any)
+      .from('role_change_log')
       .insert({
         target_email: newOwnerEmail,
         previous_role: 'user',
@@ -224,20 +224,20 @@ export const getUsersWithRoles = async () => {
 
     // Get all user roles
     const { data: userRoles } = await supabase
-      .from('user_roles' as any)
+      .from('user_roles')
       .select('*');
 
     // Get current owner email
     const { data: ownerSettings } = await supabase
-      .from('owner_settings' as any)
+      .from('owner_settings')
       .select('current_owner_email')
       .single();
 
-    const ownerEmail = (ownerSettings as any)?.current_owner_email;
+    const ownerEmail = ownerSettings?.current_owner_email;
 
     // Combine profiles with roles
     const usersWithRoles = (profiles || []).map(profile => {
-      const userRole = (userRoles as any)?.find((ur: any) => ur.user_id === profile.id);
+      const userRole = userRoles?.find(ur => ur.user_id === profile.id);
       const isOwner = profile.username === ownerEmail || profile.id === ownerEmail;
       
       return {
@@ -262,12 +262,22 @@ export const getUsersWithRoles = async () => {
 export const getRoleChangeLogs = async (): Promise<RoleChangeLog[]> => {
   try {
     const { data, error } = await supabase
-      .from('role_change_log' as any)
-      .select('*')
+      .from('role_change_log')
+      .select('id, target_user_id, target_email, previous_role, new_role, changed_by, reason, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    return (data || []).map(log => ({
+      id: log.id,
+      target_user_id: log.target_user_id,
+      target_email: log.target_email,
+      previous_role: log.previous_role as AppRole | null,
+      new_role: log.new_role as AppRole | null,
+      changed_by: log.changed_by,
+      reason: log.reason,
+      created_at: log.created_at
+    }));
   } catch (error: any) {
     console.error("Error fetching role logs:", error);
     return [];
