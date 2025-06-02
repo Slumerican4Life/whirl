@@ -40,30 +40,37 @@ const AdSenseUnit: React.FC<AdSenseUnitProps> = ({
         if (window.adsbygoogle && !pushed.current) {
           window.adsbygoogle.push({});
           pushed.current = true;
-          console.log(`AdSense: Pushed slot ${slot} (${comment || 'No comment'})`);
+          console.log(`✅ AdSense: Successfully pushed slot ${slot} (${comment || 'No comment'})`);
         }
       } catch (e) {
-        console.error(`AdSense: Error pushing slot ${slot}:`, e);
+        console.error(`❌ AdSense: Error pushing slot ${slot}:`, e);
       }
     };
 
-    // Check if script is already loaded
-    if (window.adsbygoogle) {
-      pushAd();
-    } else {
-      // Wait for script to load
-      const checkForAdsense = setInterval(() => {
-        if (window.adsbygoogle) {
-          clearInterval(checkForAdsense);
-          pushAd();
-        }
-      }, 100);
-
-      // Clean up interval after 10 seconds
-      setTimeout(() => clearInterval(checkForAdsense), 10000);
-    }
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      if (window.adsbygoogle) {
+        pushAd();
+      } else {
+        // Wait for script to load with retry mechanism
+        let retries = 0;
+        const maxRetries = 50; // 5 seconds max wait
+        
+        const checkForAdsense = setInterval(() => {
+          retries++;
+          if (window.adsbygoogle) {
+            clearInterval(checkForAdsense);
+            pushAd();
+          } else if (retries >= maxRetries) {
+            clearInterval(checkForAdsense);
+            console.warn(`⚠️ AdSense: Timeout waiting for adsbygoogle to load for slot ${slot}`);
+          }
+        }, 100);
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       pushed.current = false;
     };
   }, [slot, comment]);
@@ -82,16 +89,20 @@ const AdSenseUnit: React.FC<AdSenseUnitProps> = ({
   }
 
   return (
-    <>
-      {comment && <script dangerouslySetInnerHTML={{ __html: `/* ${comment} */` }} />}
+    <div className={`adsense-container ${className || ''}`}>
+      {comment && (
+        <div className="sr-only" aria-hidden="true">
+          {/* AdSense Unit: {comment} */}
+        </div>
+      )}
       <ins
         ref={adRef}
-        className={`adsbygoogle ${className || ''}`}
+        className="adsbygoogle"
         style={style}
         {...adProps}
         data-testid={`adsense-unit-${slot}`}
       />
-    </>
+    </div>
   );
 };
 
