@@ -6,17 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, TrendingUp, Play } from 'lucide-react';
 import { getViralContent, fetchNewViralContent } from '@/lib/viral-content-queries';
+import LoadingFallback from '@/components/LoadingFallback';
 
 const ViralContentSection = () => {
-  const { data: viralContent, isLoading, refetch } = useQuery({
+  const { data: viralContent, isLoading, refetch, error } = useQuery({
     queryKey: ['viral-content'],
     queryFn: getViralContent,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2, // Only retry twice to prevent infinite loading
+    retryDelay: 1000,
   });
 
   const handleRefresh = async () => {
-    await fetchNewViralContent();
-    refetch();
+    try {
+      await fetchNewViralContent();
+      refetch();
+    } catch (error) {
+      console.error('Failed to refresh viral content:', error);
+    }
   };
 
   const formatViews = (views?: number) => {
@@ -36,13 +43,43 @@ const ViralContentSection = () => {
     }
   };
 
+  // Show loading fallback instead of spinner if loading takes too long or errors
   if (isLoading) {
     return (
       <section className="py-12 bg-gray-900">
         <div className="container mx-auto px-4">
-          <div className="flex justify-center">
-            <RefreshCw className="h-8 w-8 animate-spin text-red-500" />
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-8 w-8 text-red-500" />
+              <h2 className="text-3xl font-bold text-white">Viral Feed</h2>
+            </div>
           </div>
+          <LoadingFallback 
+            title="Loading Viral Content"
+            description="Fetching the latest trending videos..."
+            showRetry={false}
+          />
+        </div>
+      </section>
+    );
+  }
+
+  // Show error fallback if there's an error
+  if (error) {
+    return (
+      <section className="py-12 bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-8 w-8 text-red-500" />
+              <h2 className="text-3xl font-bold text-white">Viral Feed</h2>
+            </div>
+          </div>
+          <LoadingFallback 
+            title="Unable to Load Viral Content"
+            description="Check back soon for the latest trending videos"
+            onRetry={handleRefresh}
+          />
         </div>
       </section>
     );
@@ -67,12 +104,11 @@ const ViralContentSection = () => {
         </div>
 
         {!viralContent || viralContent.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 mb-4">No viral content available</p>
-            <Button onClick={handleRefresh} className="bg-red-500 hover:bg-red-600">
-              Fetch Content
-            </Button>
-          </div>
+          <LoadingFallback 
+            title="No Viral Content Available"
+            description="New trending content will appear here soon"
+            onRetry={handleRefresh}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {viralContent.map((content) => (

@@ -57,8 +57,8 @@ const SlumericanCornerSection: React.FC<SlumericanCornerSectionProps> = ({ battl
           </p>
         </div>
         
-        {/* Battles Grid or Placeholder */}
-        {battles.length > 0 ? (
+        {/* Always show content - either battles or call to action */}
+        {battles && battles.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {battles.map((battle) => (
               <div key={battle.id} className="transform transition-all hover:scale-[1.02]">
