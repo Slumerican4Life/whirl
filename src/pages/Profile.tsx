@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import TokenPurchaseOptions from "@/components/TokenPurchaseOptions";
 import TwoFactorSetup from "@/components/TwoFactorSetup";
 import StripeConnectButton from "@/components/StripeConnectButton";
-import { Coins, Film, Shield, DollarSign } from "lucide-react";
+import { RoleManagementPanel } from "@/components/role-management";
+import { useRole } from "@/hooks/useRole";
+import { Coins, Film, Shield, DollarSign, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserVideos } from "@/lib/video-queries"; 
 import type { Video as DbVideo } from "@/lib/types"; 
@@ -36,6 +37,7 @@ interface VideoCardVideo {
 
 const ProfilePage = () => {
   const { user, loading: authLoading } = useRequireAuth();
+  const { isOwner, isAdmin, loading: roleLoading } = useRole();
   
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const [loadingBalance, setLoadingBalance] = useState(true);
@@ -149,7 +151,7 @@ const ProfilePage = () => {
     }
   };
 
-  if (authLoading || (user && (loadingBalance || videosLoading))) {
+  if (authLoading || roleLoading || (user && (loadingBalance || videosLoading))) {
     return (
       <div className="min-h-screen flex items-center justify-center swirl-bg">
         <div className="animate-pulse text-lg text-white">Loading Profile...</div>
@@ -230,7 +232,7 @@ const ProfilePage = () => {
           </div>
           
           <Tabs defaultValue="videos" className="mb-8">
-            <TabsList className="grid grid-cols-4 mb-6 mx-auto max-w-lg bg-background/50 border border-whirl-blue-dark">
+            <TabsList className={`grid ${isOwner || isAdmin ? 'grid-cols-5' : 'grid-cols-4'} mb-6 mx-auto max-w-lg bg-background/50 border border-whirl-blue-dark`}>
               <TabsTrigger value="videos" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">My Videos</TabsTrigger>
               <TabsTrigger value="badges" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">My Badges</TabsTrigger>
               <TabsTrigger value="earnings" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">
@@ -241,6 +243,12 @@ const ProfilePage = () => {
                 <Shield className="w-4 h-4 mr-1" />
                 Security
               </TabsTrigger>
+              {(isOwner || isAdmin) && (
+                <TabsTrigger value="admin" className="data-[state=active]:bg-whirl-purple data-[state=active]:text-white">
+                  <Settings className="w-4 h-4 mr-1" />
+                  Admin
+                </TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="videos">
@@ -373,6 +381,12 @@ const ProfilePage = () => {
             <TabsContent value="security">
               <TwoFactorSetup />
             </TabsContent>
+
+            {(isOwner || isAdmin) && (
+              <TabsContent value="admin">
+                <RoleManagementPanel />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </main>

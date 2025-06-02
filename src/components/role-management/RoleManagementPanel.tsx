@@ -28,7 +28,7 @@ const RoleManagementPanel = () => {
   
   // Role assignment form
   const [assignEmail, setAssignEmail] = useState('');
-  const [assignRole, setAssignRole] = useState<AppRole>('user');
+  const [selectedRole, setSelectedRole] = useState<AppRole>('user');
   
   // Token gift form
   const [giftEmail, setGiftEmail] = useState('');
@@ -77,17 +77,17 @@ const RoleManagementPanel = () => {
       return;
     }
 
-    // Find user by email (this is simplified - in real app you'd need proper user lookup)
+    // Find user by email (simplified lookup)
     const user = users.find(u => u.username === assignEmail || u.id === assignEmail);
     if (!user) {
       toast.error('User not found');
       return;
     }
 
-    const success = await assignRole(user.id, assignRole);
+    const success = await assignRole(user.id, selectedRole);
     if (success) {
       setAssignEmail('');
-      setAssignRole('user');
+      setSelectedRole('user');
       loadData();
     }
   };
@@ -155,7 +155,7 @@ const RoleManagementPanel = () => {
                 </div>
                 <div>
                   <Label htmlFor="assign-role">Role</Label>
-                  <Select value={assignRole} onValueChange={(value) => setAssignRole(value as AppRole)}>
+                  <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as AppRole)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
