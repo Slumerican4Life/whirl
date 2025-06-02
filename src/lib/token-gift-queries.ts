@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -27,26 +28,31 @@ export const giftTokens = async (
     }
 
     // Check if user has permission to gift tokens (owner or manager)
-    const { data: hasPermission } = await supabase.rpc('has_role', {
-      _user_id: user.id,
-      _role: 'owner'
-    });
+    const { data: userRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
 
-    const { data: isManager } = await supabase.rpc('has_role', {
-      _user_id: user.id,
-      _role: 'manager'
-    });
+    // Check if user is owner by email
+    const { data: ownerSettings } = await supabase
+      .from('owner_settings')
+      .select('current_owner_email')
+      .single();
 
-    if (!hasPermission && !isManager) {
+    const isOwner = ownerSettings?.current_owner_email === user.email;
+    const hasPermission = isOwner || userRole?.role === 'manager' || userRole?.role === 'admin';
+
+    if (!hasPermission) {
       toast.error("You don't have permission to gift tokens");
       return false;
     }
 
-    // Check if recipient exists
+    // Check if recipient exists by email
     const { data: recipient } = await supabase
       .from('profiles')
       .select('id')
-      .eq('id', recipientEmail) // This might need adjustment - we need to find by email
+      .eq('id', recipientEmail) // This might need to be adjusted to search by email field
       .single();
 
     // Create token transaction for the gift
@@ -55,7 +61,7 @@ export const giftTokens = async (
       .insert({
         user_id: recipient?.id || user.id, // Fallback if recipient not found
         amount: amount,
-        transaction_type: 'tip_received', // Using existing enum value
+        transaction_type: 'gift',
         recipient_email: recipientEmail,
         gift_message: message,
         gifted_by: user.id,
@@ -66,14 +72,22 @@ export const giftTokens = async (
 
     // If recipient exists, add tokens to their wallet
     if (recipient) {
-      const { error: walletError } = await supabase.rpc('spend_token', {
-        user_id: recipient.id,
-        amount: -amount, // Negative amount to add tokens
-        description: `Gift from ${user.email}`
-      });
+      const { data: wallet } = await supabase
+        .from('token_wallets')
+        .select('balance')
+        .eq('user_id', recipient.id)
+        .single();
 
-      if (walletError) {
-        console.warn("Could not update recipient wallet, they may need to claim manually");
+      if (wallet) {
+        await supabase
+          .from('token_wallets')
+          .update({ balance: wallet.balance + amount })
+          .eq('user_id', recipient.id);
+      } else {
+        // Create wallet if it doesn't exist
+        await supabase
+          .from('token_wallets')
+          .insert({ user_id: recipient.id, balance: amount });
       }
     }
 
@@ -93,12 +107,24 @@ export const getTokenGiftHistory = async (): Promise<TokenGift[]> => {
   try {
     const { data, error } = await supabase
       .from('token_transactions')
-      .select('*')
+      .select('id, amount, recipient_email, gift_message, gifted_by, created_at, description')
       .not('recipient_email', 'is', null)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Map the data to match TokenGift interface
+    const gifts: TokenGift[] = (data || []).map(transaction => ({
+      id: transaction.id,
+      amount: transaction.amount,
+      recipient_email: transaction.recipient_email || '',
+      gift_message: transaction.gift_message,
+      gifted_by: transaction.gifted_by || '',
+      created_at: transaction.created_at,
+      description: transaction.description
+    }));
+
+    return gifts;
   } catch (error: any) {
     console.error("Error fetching gift history:", error);
     return [];
@@ -137,11 +163,23 @@ export const claimGiftedTokens = async (): Promise<number> => {
 
     // Add tokens to user's wallet
     if (totalTokens > 0) {
-      await supabase.rpc('spend_token', {
-        user_id: user.id,
-        amount: -totalTokens,
-        description: 'Claimed gifted tokens'
-      });
+      const { data: wallet } = await supabase
+        .from('token_wallets')
+        .select('balance')
+        .eq('user_id', user.id)
+        .single();
+
+      if (wallet) {
+        await supabase
+          .from('token_wallets')
+          .update({ balance: wallet.balance + totalTokens })
+          .eq('user_id', user.id);
+      } else {
+        // Create wallet if it doesn't exist
+        await supabase
+          .from('token_wallets')
+          .insert({ user_id: user.id, balance: totalTokens });
+      }
 
       toast.success(`Claimed ${totalTokens} gifted tokens!`);
     }

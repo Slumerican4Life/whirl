@@ -37,23 +37,20 @@ export const hasRole = async (role: AppRole): Promise<boolean> => {
       return await isCurrentOwner();
     }
 
-    // For other roles, check user_roles table via direct query
+    // For other roles, check user_roles table
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', user.id)
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', role)
       .single();
 
-    if (error) throw error;
-
-    // Simple role check - in a real app you'd have a proper user_roles table
-    // For now, we'll use a simple email-based check
-    const ownerEmail = 'cleanasawhistle1000@gmail.com';
-    if (user.email === ownerEmail) {
-      return role === 'owner' || role === 'admin' || role === 'manager';
+    if (error && error.code !== 'PGRST116') {
+      console.error("Error checking role:", error);
+      return false;
     }
 
-    return role === 'user';
+    return !!data;
   } catch (error) {
     console.error("Error checking role:", error);
     return false;
@@ -70,18 +67,21 @@ export const getUserRole = async (userId?: string): Promise<AppRole> => {
     
     if (!targetUserId) return 'user';
 
-    // Get user email
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return 'user';
-
-    // Check if user is owner
-    const ownerEmail = 'cleanasawhistle1000@gmail.com';
-    if (userData.user.email === ownerEmail) {
+    // Check if user is owner first
+    if (await isCurrentOwner()) {
       return 'owner';
     }
 
-    // Default to user role
-    return 'user';
+    // Get highest role from user_roles table
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', targetUserId)
+      .order('role', { ascending: true }) // This will prioritize admin over manager over user
+      .limit(1)
+      .single();
+
+    return data?.role || 'user';
   } catch (error) {
     console.error("Error getting user role:", error);
     return 'user';
@@ -96,8 +96,13 @@ export const isCurrentOwner = async (): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.email) return false;
 
-    const ownerEmail = 'cleanasawhistle1000@gmail.com';
-    return user.email === ownerEmail;
+    // Check against owner_settings table
+    const { data } = await supabase
+      .from('owner_settings')
+      .select('current_owner_email')
+      .single();
+
+    return data?.current_owner_email === user.email;
   } catch (error) {
     console.error("Error checking owner status:", error);
     return false;
@@ -122,9 +127,33 @@ export const assignRole = async (userId: string, role: AppRole, reason?: string)
       return false;
     }
 
-    // For now, we'll store role assignments in a simple way
-    // In a production app, you'd have a proper user_roles table
-    toast.success(`Role ${role} assigned successfully (demo mode)`);
+    // Get current role for logging
+    const currentRole = await getUserRole(userId);
+
+    // Assign new role
+    const { error } = await supabase
+      .from('user_roles')
+      .upsert({
+        user_id: userId,
+        role: role,
+        assigned_by: user.id,
+        assigned_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+
+    // Log the role change
+    await supabase
+      .from('role_change_log')
+      .insert({
+        target_user_id: userId,
+        previous_role: currentRole,
+        new_role: role,
+        changed_by: user.id,
+        reason: reason || `Role assigned to ${role}`
+      });
+
+    toast.success(`Role ${role} assigned successfully`);
     return true;
   } catch (error: any) {
     console.error("Error assigning role:", error);
@@ -150,9 +179,29 @@ export const transferOwnership = async (newOwnerEmail: string): Promise<boolean>
       return false;
     }
 
-    // In a real app, you'd update the owner_settings table
-    // For now, we'll just show a success message
-    toast.success(`Ownership would be transferred to ${newOwnerEmail} (demo mode)`);
+    // Update owner settings
+    const { error } = await supabase
+      .from('owner_settings')
+      .update({ 
+        current_owner_email: newOwnerEmail,
+        updated_at: new Date().toISOString()
+      })
+      .eq('current_owner_email', user.email);
+
+    if (error) throw error;
+
+    // Log the ownership transfer
+    await supabase
+      .from('role_change_log')
+      .insert({
+        target_email: newOwnerEmail,
+        previous_role: 'user',
+        new_role: 'owner',
+        changed_by: user.id,
+        reason: 'Ownership transfer'
+      });
+
+    toast.success(`Ownership transferred to ${newOwnerEmail}`);
     return true;
   } catch (error: any) {
     console.error("Error transferring ownership:", error);
@@ -173,13 +222,31 @@ export const getUsersWithRoles = async () => {
 
     if (profilesError) throw profilesError;
 
-    // Mock role data since we don't have the user_roles table in types yet
-    const usersWithRoles = (profiles || []).map(profile => ({
-      ...profile,
-      role: profile.id === 'cleanasawhistle1000@gmail.com' ? 'owner' : 'user',
-      assigned_at: profile.created_at,
-      permissions: {}
-    }));
+    // Get all user roles
+    const { data: userRoles } = await supabase
+      .from('user_roles')
+      .select('*');
+
+    // Get current owner email
+    const { data: ownerSettings } = await supabase
+      .from('owner_settings')
+      .select('current_owner_email')
+      .single();
+
+    const ownerEmail = ownerSettings?.current_owner_email;
+
+    // Combine profiles with roles
+    const usersWithRoles = (profiles || []).map(profile => {
+      const userRole = userRoles?.find(ur => ur.user_id === profile.id);
+      const isOwner = profile.id === ownerEmail; // Note: this assumes email as ID, may need adjustment
+      
+      return {
+        ...profile,
+        role: isOwner ? 'owner' : (userRole?.role || 'user'),
+        assigned_at: userRole?.assigned_at || profile.created_at,
+        permissions: userRole?.permissions || {}
+      };
+    });
 
     return usersWithRoles;
   } catch (error: any) {
@@ -194,21 +261,13 @@ export const getUsersWithRoles = async () => {
  */
 export const getRoleChangeLogs = async (): Promise<RoleChangeLog[]> => {
   try {
-    // Mock data since we don't have role_change_log table in types yet
-    const mockLogs: RoleChangeLog[] = [
-      {
-        id: '1',
-        target_user_id: null,
-        target_email: 'cleanasawhistle1000@gmail.com',
-        previous_role: null,
-        new_role: 'owner',
-        changed_by: null,
-        reason: 'Initial setup',
-        created_at: new Date().toISOString()
-      }
-    ];
+    const { data, error } = await supabase
+      .from('role_change_log')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    return mockLogs;
+    if (error) throw error;
+    return data || [];
   } catch (error: any) {
     console.error("Error fetching role logs:", error);
     return [];
