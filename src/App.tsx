@@ -17,6 +17,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Slumerican from "./pages/Slumerican";
+import Truth from "./pages/Truth";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import LyraAssistant from "./components/LyraAssistant";
 
@@ -42,6 +43,7 @@ function App() {
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/slumerican" element={<Slumerican />} />
+              <Route path="/truth" element={<Truth />} />
               <Route path="/payment-success" element={<PaymentSuccessPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

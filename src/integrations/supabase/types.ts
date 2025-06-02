@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_agents: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          description: string
+          id: string
+          name: string
+          personality: Json | null
+          specialization: string
+          title: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          name: string
+          personality?: Json | null
+          specialization: string
+          title: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          name?: string
+          personality?: Json | null
+          specialization?: string
+          title?: string
+        }
+        Relationships: []
+      }
       avatar_customizations: {
         Row: {
           avatar_url: string | null
@@ -496,6 +529,92 @@ export type Database = {
           },
         ]
       }
+      truth_analyses: {
+        Row: {
+          agent_id: string | null
+          analysis_text: string
+          confidence_score: number | null
+          created_at: string | null
+          evidence_links: Json | null
+          id: string
+          truth_video_id: string | null
+          verdict: string
+        }
+        Insert: {
+          agent_id?: string | null
+          analysis_text: string
+          confidence_score?: number | null
+          created_at?: string | null
+          evidence_links?: Json | null
+          id?: string
+          truth_video_id?: string | null
+          verdict: string
+        }
+        Update: {
+          agent_id?: string | null
+          analysis_text?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          evidence_links?: Json | null
+          id?: string
+          truth_video_id?: string | null
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "truth_analyses_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "truth_analyses_truth_video_id_fkey"
+            columns: ["truth_video_id"]
+            isOneToOne: false
+            referencedRelation: "truth_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      truth_videos: {
+        Row: {
+          category: string
+          claims: Json | null
+          created_at: string | null
+          id: string
+          truth_score: number | null
+          verification_status: string | null
+          video_id: string | null
+        }
+        Insert: {
+          category: string
+          claims?: Json | null
+          created_at?: string | null
+          id?: string
+          truth_score?: number | null
+          verification_status?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          category?: string
+          claims?: Json | null
+          created_at?: string | null
+          id?: string
+          truth_score?: number | null
+          verification_status?: string | null
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "truth_videos_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_2fa_settings: {
         Row: {
           backup_codes: string[] | null
@@ -745,6 +864,48 @@ export type Database = {
           },
         ]
       }
+      viral_content: {
+        Row: {
+          description: string | null
+          engagement_score: number | null
+          external_id: string
+          fetched_at: string | null
+          id: string
+          platform: string
+          processed: boolean | null
+          thumbnail_url: string | null
+          title: string
+          video_url: string
+          view_count: number | null
+        }
+        Insert: {
+          description?: string | null
+          engagement_score?: number | null
+          external_id: string
+          fetched_at?: string | null
+          id?: string
+          platform: string
+          processed?: boolean | null
+          thumbnail_url?: string | null
+          title: string
+          video_url: string
+          view_count?: number | null
+        }
+        Update: {
+          description?: string | null
+          engagement_score?: number | null
+          external_id?: string
+          fetched_at?: string | null
+          id?: string
+          platform?: string
+          processed?: boolean | null
+          thumbnail_url?: string | null
+          title?: string
+          video_url?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       votes: {
         Row: {
           created_at: string
@@ -868,6 +1029,7 @@ export type Database = {
         | "avatar_customization"
         | "tip_sent"
         | "tip_received"
+        | "gift"
     }
     CompositeTypes: {
       http_header: {
@@ -1013,6 +1175,7 @@ export const Constants = {
         "avatar_customization",
         "tip_sent",
         "tip_received",
+        "gift",
       ],
     },
   },

@@ -1,174 +1,136 @@
 
-import React from 'react';
-import { Category } from '@/lib/data';
-import { Battle, getBattlesByType } from '@/lib/battle-queries';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Sword, RefreshCw, Plus } from 'lucide-react';
+import { getBattles } from '@/lib/battle-queries';
+import { getViralContent } from '@/lib/viral-content-queries';
 import BattleCard from '@/components/BattleCard';
-import CategoryFilter from '@/components/CategoryFilter';
-import AdSenseUnit from '@/components/AdSenseUnit';
-import { Swords, TrendingUp, User, Bot, Zap } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
-interface TodaysBattlesSectionProps {
-  activeBattles: Battle[];
-  selectedCategory: Category | 'All';
-  onSelectCategory: (category: Category | 'All') => void;
-}
+const TodaysBattlesSection = () => {
+  const [showAll, setShowAll] = useState(false);
+  
+  const { data: battles, isLoading: battlesLoading, refetch: refetchBattles } = useQuery({
+    queryKey: ['battles'],
+    queryFn: getBattles,
+  });
 
-const TodaysBattlesSection: React.FC<TodaysBattlesSectionProps> = ({ 
-  activeBattles, 
-  selectedCategory, 
-  onSelectCategory 
-}) => {
-  const [humanBattles, setHumanBattles] = useState<Battle[]>([]);
-  const [aiBattles, setAiBattles] = useState<Battle[]>([]);
-  const [hybridBattles, setHybridBattles] = useState<Battle[]>([]);
+  const { data: viralContent, isLoading: viralLoading } = useQuery({
+    queryKey: ['viral-content-for-battles'],
+    queryFn: getViralContent,
+  });
 
-  useEffect(() => {
-    const loadBattlesByType = async () => {
-      const [human, ai, hybrid] = await Promise.all([
-        getBattlesByType('human_vs_human'),
-        getBattlesByType('ai_vs_ai'),
-        getBattlesByType('human_vs_ai')
-      ]);
-      
-      // Filter by category if selected
-      const filterByCategory = (battles: Battle[]) => {
-        if (selectedCategory === 'All') return battles;
-        return battles.filter(battle => battle.category === selectedCategory);
-      };
+  const displayBattles = showAll ? battles : battles?.slice(0, 6);
+  const hasNoBattles = !battles || battles.length === 0;
 
-      setHumanBattles(filterByCategory(human));
-      setAiBattles(filterByCategory(ai));
-      setHybridBattles(filterByCategory(hybrid));
+  const generateMockBattle = () => {
+    if (!viralContent || viralContent.length < 2) return null;
+    
+    const shuffled = [...viralContent].sort(() => 0.5 - Math.random());
+    return {
+      id: 'mock-battle',
+      video1: shuffled[0],
+      video2: shuffled[1],
+      category: 'viral',
+      status: 'active',
+      created_at: new Date().toISOString()
     };
+  };
 
-    loadBattlesByType();
-  }, [selectedCategory]);
-
-  const BattleSection = ({ 
-    title, 
-    battles, 
-    icon, 
-    description, 
-    gradient 
-  }: { 
-    title: string;
-    battles: Battle[];
-    icon: React.ReactNode;
-    description: string;
-    gradient: string;
-  }) => (
-    <div className="mb-12">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className={`${gradient} p-3 rounded-2xl shadow-lg`}>
-            {icon}
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-white">{title}</h3>
-            <p className="text-gray-400 text-sm">{description}</p>
+  if (battlesLoading || viralLoading) {
+    return (
+      <section className="py-12 bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center">
+            <RefreshCw className="h-8 w-8 animate-spin text-red-500" />
           </div>
         </div>
-        <div className="hidden lg:flex items-center gap-2 glass-dark px-3 py-1 rounded-lg">
-          <TrendingUp className="w-4 h-4 text-green-400" />
-          <span className="text-sm text-green-400 font-medium">{battles.length} Active</span>
-        </div>
-      </div>
-      
-      {battles.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {battles.map((battle) => (
-            <div key={battle.id} className="transform transition-all hover:scale-[1.02]">
-              <BattleCard battle={battle} />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <div className="glass-dark rounded-2xl p-8 border border-white/10 max-w-sm mx-auto">
-            <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Swords className="w-6 h-6 text-white" />
-            </div>
-            <h4 className="text-lg font-semibold text-white mb-2">No Active Battles</h4>
-            <p className="text-gray-400 text-sm">No {title.toLowerCase()} battles in this category right now.</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      </section>
+    );
+  }
 
   return (
-    <section className="mb-16">
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <div className="bg-gradient-to-br from-whirl-purple to-whirl-pink p-3 rounded-2xl shadow-lg">
-            <Swords className="w-8 h-8 text-white" />
+    <section className="py-12 bg-gray-900">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <Sword className="h-8 w-8 text-red-500" />
+            <h2 className="text-3xl font-bold text-white">Today's Battles</h2>
           </div>
-          <div>
-            <h2 className="text-3xl font-black text-white tracking-tight">Today's Battles</h2>
-            <p className="text-gray-400 mt-1">Fair competitions across all skill levels</p>
+          <div className="flex gap-2">
+            <Button 
+              onClick={refetchBattles}
+              variant="outline" 
+              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
           </div>
         </div>
-      </div>
-      
-      {/* Category Filter */}
-      <div className="mb-8">
-        <CategoryFilter 
-          selectedCategory={selectedCategory}
-          onSelectCategory={onSelectCategory}
-        />
-      </div>
-      
-      {/* Human vs Human Battles */}
-      <BattleSection
-        title="Human vs Human"
-        battles={humanBattles}
-        icon={<User className="w-8 h-8 text-white" />}
-        description="Pure human creativity and skill"
-        gradient="bg-gradient-to-br from-blue-500 to-blue-600"
-      />
 
-      {/* Ad between sections */}
-      <div className="my-8 text-center">
-        <AdSenseUnit
-          client="ca-pub-5650237599652350"
-          slot="8238475251"
-          format="autorelaxed"
-          comment="battles-section-divider"
-          className="min-h-[200px]"
-        />
+        {hasNoBattles ? (
+          <div className="text-center py-12">
+            <Card className="bg-gray-800 border-gray-700 max-w-md mx-auto">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center justify-center gap-2">
+                  <Plus className="h-6 w-6 text-red-500" />
+                  No Active Battles
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-400 mb-4">
+                  No battles are currently active. Check back soon or create your own!
+                </p>
+                {viralContent && viralContent.length >= 2 && (
+                  <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-300 mb-2">
+                      Mock Battle Preview (from viral content):
+                    </p>
+                    <div className="text-xs text-gray-400">
+                      {viralContent[0]?.title} vs {viralContent[1]?.title}
+                    </div>
+                  </div>
+                )}
+                <Button className="bg-red-500 hover:bg-red-600 mt-4">
+                  Upload Video to Start Battle
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {displayBattles?.map((battle) => (
+                <BattleCard key={battle.id} battle={battle} />
+              ))}
+            </div>
+
+            {battles && battles.length > 6 && (
+              <div className="text-center">
+                <Button 
+                  onClick={() => setShowAll(!showAll)}
+                  variant="outline"
+                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                >
+                  {showAll ? 'Show Less' : `Show All ${battles.length} Battles`}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+
+        {viralContent && viralContent.length > 0 && (
+          <div className="mt-8 pt-8 border-t border-gray-700">
+            <div className="flex items-center gap-2 mb-4">
+              <Badge className="bg-blue-500">Beta Feature</Badge>
+              <span className="text-gray-400 text-sm">Viral content integration active</span>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* AI vs AI Battles */}
-      <BattleSection
-        title="AI vs AI"
-        battles={aiBattles}
-        icon={<Bot className="w-8 h-8 text-white" />}
-        description="Cutting-edge AI creativity showcase"
-        gradient="bg-gradient-to-br from-purple-500 to-purple-600"
-      />
-
-      {/* Ad between sections */}
-      <div className="my-8 text-center">
-        <AdSenseUnit
-          client="ca-pub-5650237599652350"
-          slot="7994098522"
-          format="auto"
-          responsive="true"
-          comment="battles-section-divider-2"
-          className="min-h-[200px]"
-        />
-      </div>
-
-      {/* Human vs AI Battles - The Underdog Section */}
-      <BattleSection
-        title="Human vs AI - Underdog Battles"
-        battles={hybridBattles}
-        icon={<Zap className="w-8 h-8 text-white" />}
-        description="🥊 Humans get the underdog advantage!"
-        gradient="bg-gradient-to-br from-orange-500 to-red-500"
-      />
     </section>
   );
 };
