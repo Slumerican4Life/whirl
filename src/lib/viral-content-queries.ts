@@ -82,16 +82,6 @@ export const getViralContent = async (): Promise<ViralContent[]> => {
         }
       ];
 
-      // Use fetch API to call our edge function
-      const response = await fetch('/api/fetch-viral-content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (response.ok) {
-        console.log('Viral content fetch triggered');
-      }
-
       return mockData;
     }
 
@@ -100,6 +90,26 @@ export const getViralContent = async (): Promise<ViralContent[]> => {
     console.error("Error fetching viral content:", error);
     toast.error("Failed to load viral content");
     return [];
+  }
+};
+
+/**
+ * Fetches new viral content by calling the edge function
+ */
+export const fetchNewViralContent = async (): Promise<void> => {
+  try {
+    const { error } = await supabase.functions.invoke('fetch-viral-content');
+    
+    if (error) {
+      console.error('Error fetching new viral content:', error);
+      toast.error('Failed to fetch new content');
+      return;
+    }
+    
+    toast.success('New viral content fetched successfully');
+  } catch (error: any) {
+    console.error('Error calling fetch function:', error);
+    toast.error('Failed to fetch new content');
   }
 };
 
@@ -119,7 +129,7 @@ export const getAIAgents = async (): Promise<AIAgent[]> => {
       ...agent,
       personality: typeof agent.personality === 'string' 
         ? JSON.parse(agent.personality) 
-        : agent.personality || {}
+        : (agent.personality as Record<string, any>) || {}
     }));
   } catch (error: any) {
     console.error("Error fetching AI agents:", error);
@@ -144,26 +154,17 @@ export const getTruthAnalyses = async (): Promise<TruthAnalysis[]> => {
 
     if (error) throw error;
 
-    // Use fetch API to call our edge function for content analysis
-    const response = await fetch('/api/analyze-content', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        videoId: 'mock-video',
-        title: 'Sample Truth Analysis',
-        description: 'Testing our truth analysis system'
-      })
-    });
-
-    if (response.ok) {
-      console.log('Content analysis triggered');
-    }
-
     return (data || []).map(analysis => ({
       ...analysis,
       evidence_links: Array.isArray(analysis.evidence_links) 
         ? analysis.evidence_links 
-        : []
+        : [],
+      agent: {
+        ...analysis.agent,
+        personality: typeof analysis.agent.personality === 'string'
+          ? JSON.parse(analysis.agent.personality)
+          : (analysis.agent.personality as Record<string, any>) || {}
+      }
     }));
   } catch (error: any) {
     console.error("Error fetching truth analyses:", error);
