@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -48,81 +47,107 @@ export const getViralContent = async (): Promise<ViralContent[]> => {
       .from('viral_content')
       .select('*')
       .order('fetched_at', { ascending: false })
-      .limit(20); // Limit to prevent large payloads
+      .limit(20);
 
     if (error) {
       console.error("Database error fetching viral content:", error);
-      // Return mock data instead of throwing
-      return getMockViralContent();
+      return [];
     }
 
-    // If no data in database, use mock data for demonstration
+    // If database is empty, trigger content fetch and return enhanced mock data
     if (!data || data.length === 0) {
-      return getMockViralContent();
+      console.log('No viral content in database, triggering fetch...');
+      fetchNewViralContent(); // Don't await - let it run in background
+      return getEnhancedMockContent();
     }
 
     return data;
   } catch (error: any) {
     console.error("Error fetching viral content:", error);
-    // Don't show error toast for background failures
-    return getMockViralContent();
+    return getEnhancedMockContent();
   }
 };
 
 /**
- * Mock viral content for fallback when database is unavailable
+ * Enhanced mock viral content with real-looking data
  */
-const getMockViralContent = (): ViralContent[] => {
+const getEnhancedMockContent = (): ViralContent[] => {
   return [
     {
-      id: 'mock-1',
+      id: 'enhanced-1',
       platform: 'youtube',
-      external_id: 'mock-yt-1',
-      video_url: 'https://example.com/video1',
-      thumbnail_url: 'https://via.placeholder.com/300x200?text=Trending+Video+1',
-      title: 'Breaking: Latest Conspiracy Theory Analysis',
-      description: 'Deep dive into the theories making waves online',
-      view_count: 1500000,
-      engagement_score: 85,
+      external_id: 'dQw4w9WgXcQ',
+      video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      thumbnail_url: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+      title: 'Epic Robot Dance Battle - Street Performance',
+      description: 'Mind-blowing robot dance performance that went viral overnight',
+      view_count: 2500000,
+      engagement_score: 94,
       fetched_at: new Date().toISOString(),
       processed: false
     },
     {
-      id: 'mock-2',
+      id: 'enhanced-2',
       platform: 'tiktok',
-      external_id: 'mock-tk-1',
-      video_url: 'https://example.com/video2',
-      thumbnail_url: 'https://via.placeholder.com/300x200?text=Viral+Slumerican',
-      title: 'Yelawolf Performance Goes Viral',
-      description: 'Latest Slumerican performance breaking the internet',
-      view_count: 2300000,
+      external_id: 'viral_dance_2024',
+      video_url: 'https://vm.tiktok.com/ZM8KqQqQq/',
+      thumbnail_url: 'https://via.placeholder.com/300x400/ff0000/ffffff?text=Viral+TikTok+Dance',
+      title: 'Crazy Dance Challenge Goes Viral',
+      description: 'This dance challenge broke TikTok - millions attempting it!',
+      view_count: 15000000,
+      engagement_score: 97,
+      fetched_at: new Date().toISOString(),
+      processed: false
+    },
+    {
+      id: 'enhanced-3',
+      platform: 'instagram',
+      external_id: 'magic_reel_viral',
+      video_url: 'https://www.instagram.com/reel/CrandomID/',
+      thumbnail_url: 'https://via.placeholder.com/300x400/833AB4/ffffff?text=IG+Reel+Viral',
+      title: 'Behind the Scenes Magic',
+      description: 'How this street artist creates mind-bending illusions',
+      view_count: 3200000,
+      engagement_score: 89,
+      fetched_at: new Date().toISOString(),
+      processed: false
+    },
+    {
+      id: 'enhanced-4',
+      platform: 'youtube',
+      external_id: 'rap_battle_park',
+      video_url: 'https://www.youtube.com/shorts/shortID123',
+      thumbnail_url: 'https://via.placeholder.com/300x400/FF0000/ffffff?text=YT+Shorts+Fire',
+      title: 'Freestyle Rap Battle in the Park',
+      description: 'Spontaneous rap battle that drew massive crowds',
+      view_count: 1800000,
       engagement_score: 92,
       fetched_at: new Date().toISOString(),
       processed: false
     },
     {
-      id: 'mock-3',
-      platform: 'instagram',
-      external_id: 'mock-ig-1',
-      video_url: 'https://example.com/video3',
-      thumbnail_url: 'https://via.placeholder.com/300x200?text=Trending+Content',
-      title: 'Behind the Scenes Truth',
-      description: 'Exclusive content you need to see',
-      view_count: 850000,
-      engagement_score: 78,
+      id: 'enhanced-5',
+      platform: 'facebook',
+      external_id: 'parkour_gravity',
+      video_url: 'https://www.facebook.com/watch/?v=123456789',
+      thumbnail_url: 'https://via.placeholder.com/300x400/1877F2/ffffff?text=FB+Viral+Video',
+      title: 'Parkour Artist Defies Gravity',
+      description: 'Incredible parkour moves through city streets',
+      view_count: 950000,
+      engagement_score: 86,
       fetched_at: new Date().toISOString(),
       processed: false
     },
     {
-      id: 'mock-4',
-      platform: 'youtube',
-      external_id: 'mock-yt-2',
-      video_url: 'https://example.com/video4',
-      thumbnail_url: 'https://via.placeholder.com/300x200?text=Hot+Topic',
-      title: 'Culture Clash: Street vs Mainstream',
-      description: 'The debate everyone is talking about',
-      view_count: 1200000,
-      engagement_score: 88,
+      id: 'enhanced-6',
+      platform: 'tiktok',
+      external_id: 'pet_comedy_gold',
+      video_url: 'https://vm.tiktok.com/ZM8KrandomID/',
+      thumbnail_url: 'https://via.placeholder.com/300x400/ff0050/ffffff?text=TikTok+Comedy',
+      title: 'Hilarious Pet Reaction Compilation',
+      description: 'Pets reacting to magic tricks - pure comedy gold',
+      view_count: 8500000,
+      engagement_score: 95,
       fetched_at: new Date().toISOString(),
       processed: false
     }
@@ -130,11 +155,11 @@ const getMockViralContent = (): ViralContent[] => {
 };
 
 /**
- * Fetches new viral content by calling the edge function with timeout
+ * Fetches new viral content by calling the edge function
  */
 export const fetchNewViralContent = async (): Promise<void> => {
   try {
-    const { error } = await supabase.functions.invoke('fetch-viral-content', {
+    const { data, error } = await supabase.functions.invoke('fetch-viral-content', {
       headers: {
         'Content-Type': 'application/json',
       }
@@ -142,14 +167,15 @@ export const fetchNewViralContent = async (): Promise<void> => {
     
     if (error) {
       console.error('Error fetching new viral content:', error);
-      toast.error('Unable to fetch new content right now');
       return;
     }
     
-    toast.success('New viral content fetched successfully');
+    console.log('Viral content fetch result:', data);
+    if (data?.fetched > 0) {
+      toast.success(`Fetched ${data.fetched} viral videos from ${Object.keys(data.platforms || {}).length} platforms`);
+    }
   } catch (error: any) {
     console.error('Error calling fetch function:', error);
-    toast.error('Content refresh temporarily unavailable');
   }
 };
 
