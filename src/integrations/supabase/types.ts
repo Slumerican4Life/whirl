@@ -246,6 +246,27 @@ export type Database = {
         }
         Relationships: []
       }
+      owner_settings: {
+        Row: {
+          created_at: string
+          current_owner_email: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_owner_email: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_owner_email?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -273,6 +294,39 @@ export type Database = {
           stripe_connect_id?: string | null
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      role_change_log: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_role: Database["public"]["Enums"]["app_role"] | null
+          previous_role: Database["public"]["Enums"]["app_role"] | null
+          reason: string | null
+          target_email: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_role?: Database["public"]["Enums"]["app_role"] | null
+          previous_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          target_email?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_role?: Database["public"]["Enums"]["app_role"] | null
+          previous_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          target_email?: string | null
+          target_user_id?: string | null
         }
         Relationships: []
       }
@@ -358,7 +412,10 @@ export type Database = {
           amount: number
           created_at: string
           description: string | null
+          gift_message: string | null
+          gifted_by: string | null
           id: string
+          recipient_email: string | null
           related_battle_id: string | null
           related_video_id: string | null
           stripe_checkout_session_id: string | null
@@ -369,7 +426,10 @@ export type Database = {
           amount: number
           created_at?: string
           description?: string | null
+          gift_message?: string | null
+          gifted_by?: string | null
           id?: string
+          recipient_email?: string | null
           related_battle_id?: string | null
           related_video_id?: string | null
           stripe_checkout_session_id?: string | null
@@ -380,7 +440,10 @@ export type Database = {
           amount?: number
           created_at?: string
           description?: string | null
+          gift_message?: string | null
+          gifted_by?: string | null
           id?: string
+          recipient_email?: string | null
           related_battle_id?: string | null
           related_video_id?: string | null
           stripe_checkout_session_id?: string | null
@@ -519,6 +582,33 @@ export type Database = {
           user_id?: string
           verification_code?: string
           verified?: boolean | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          permissions: Json | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          permissions?: Json | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          permissions?: Json | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -764,6 +854,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "owner" | "admin" | "manager" | "user"
       avatar_effect_enum: "none" | "sparkle" | "vortex"
       avatar_frame_type_enum: "basic" | "premium" | "glowing"
       boost_type_enum: "homepage_pin" | "battle_highlight"
@@ -908,6 +999,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["owner", "admin", "manager", "user"],
       avatar_effect_enum: ["none", "sparkle", "vortex"],
       avatar_frame_type_enum: ["basic", "premium", "glowing"],
       boost_type_enum: ["homepage_pin", "battle_highlight"],

@@ -39,7 +39,7 @@ export const hasRole = async (role: AppRole): Promise<boolean> => {
 
     // For other roles, check user_roles table
     const { data, error } = await supabase
-      .from('user_roles')
+      .from('user_roles' as any)
       .select('role')
       .eq('user_id', user.id)
       .eq('role', role)
@@ -74,14 +74,14 @@ export const getUserRole = async (userId?: string): Promise<AppRole> => {
 
     // Get highest role from user_roles table
     const { data } = await supabase
-      .from('user_roles')
+      .from('user_roles' as any)
       .select('role')
       .eq('user_id', targetUserId)
-      .order('role', { ascending: true }) // This will prioritize admin over manager over user
+      .order('role', { ascending: true })
       .limit(1)
       .single();
 
-    return data?.role || 'user';
+    return (data as any)?.role || 'user';
   } catch (error) {
     console.error("Error getting user role:", error);
     return 'user';
@@ -98,11 +98,11 @@ export const isCurrentOwner = async (): Promise<boolean> => {
 
     // Check against owner_settings table
     const { data } = await supabase
-      .from('owner_settings')
+      .from('owner_settings' as any)
       .select('current_owner_email')
       .single();
 
-    return data?.current_owner_email === user.email;
+    return (data as any)?.current_owner_email === user.email;
   } catch (error) {
     console.error("Error checking owner status:", error);
     return false;
@@ -132,7 +132,7 @@ export const assignRole = async (userId: string, role: AppRole, reason?: string)
 
     // Assign new role
     const { error } = await supabase
-      .from('user_roles')
+      .from('user_roles' as any)
       .upsert({
         user_id: userId,
         role: role,
@@ -144,7 +144,7 @@ export const assignRole = async (userId: string, role: AppRole, reason?: string)
 
     // Log the role change
     await supabase
-      .from('role_change_log')
+      .from('role_change_log' as any)
       .insert({
         target_user_id: userId,
         previous_role: currentRole,
@@ -181,7 +181,7 @@ export const transferOwnership = async (newOwnerEmail: string): Promise<boolean>
 
     // Update owner settings
     const { error } = await supabase
-      .from('owner_settings')
+      .from('owner_settings' as any)
       .update({ 
         current_owner_email: newOwnerEmail,
         updated_at: new Date().toISOString()
@@ -192,7 +192,7 @@ export const transferOwnership = async (newOwnerEmail: string): Promise<boolean>
 
     // Log the ownership transfer
     await supabase
-      .from('role_change_log')
+      .from('role_change_log' as any)
       .insert({
         target_email: newOwnerEmail,
         previous_role: 'user',
@@ -224,21 +224,21 @@ export const getUsersWithRoles = async () => {
 
     // Get all user roles
     const { data: userRoles } = await supabase
-      .from('user_roles')
+      .from('user_roles' as any)
       .select('*');
 
     // Get current owner email
     const { data: ownerSettings } = await supabase
-      .from('owner_settings')
+      .from('owner_settings' as any)
       .select('current_owner_email')
       .single();
 
-    const ownerEmail = ownerSettings?.current_owner_email;
+    const ownerEmail = (ownerSettings as any)?.current_owner_email;
 
     // Combine profiles with roles
     const usersWithRoles = (profiles || []).map(profile => {
-      const userRole = userRoles?.find(ur => ur.user_id === profile.id);
-      const isOwner = profile.id === ownerEmail; // Note: this assumes email as ID, may need adjustment
+      const userRole = (userRoles as any)?.find((ur: any) => ur.user_id === profile.id);
+      const isOwner = profile.username === ownerEmail || profile.id === ownerEmail;
       
       return {
         ...profile,
@@ -262,7 +262,7 @@ export const getUsersWithRoles = async () => {
 export const getRoleChangeLogs = async (): Promise<RoleChangeLog[]> => {
   try {
     const { data, error } = await supabase
-      .from('role_change_log')
+      .from('role_change_log' as any)
       .select('*')
       .order('created_at', { ascending: false });
 

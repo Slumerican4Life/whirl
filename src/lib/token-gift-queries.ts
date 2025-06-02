@@ -29,37 +29,41 @@ export const giftTokens = async (
 
     // Check if user has permission to gift tokens (owner or manager)
     const { data: userRole } = await supabase
-      .from('user_roles')
+      .from('user_roles' as any)
       .select('role')
       .eq('user_id', user.id)
       .single();
 
     // Check if user is owner by email
     const { data: ownerSettings } = await supabase
-      .from('owner_settings')
+      .from('owner_settings' as any)
       .select('current_owner_email')
       .single();
 
-    const isOwner = ownerSettings?.current_owner_email === user.email;
-    const hasPermission = isOwner || userRole?.role === 'manager' || userRole?.role === 'admin';
+    const isOwner = (ownerSettings as any)?.current_owner_email === user.email;
+    const hasPermission = isOwner || (userRole as any)?.role === 'manager' || (userRole as any)?.role === 'admin';
 
     if (!hasPermission) {
       toast.error("You don't have permission to gift tokens");
       return false;
     }
 
-    // Check if recipient exists by email
-    const { data: recipient } = await supabase
+    // Check if recipient exists by email - first try to find by email in auth metadata
+    const { data: allProfiles } = await supabase
       .from('profiles')
-      .select('id')
-      .eq('id', recipientEmail) // This might need to be adjusted to search by email field
-      .single();
+      .select('*');
+
+    // For now, we'll use the user ID lookup based on username/email similarity
+    const recipient = (allProfiles || []).find(p => 
+      p.username === recipientEmail || 
+      p.id === recipientEmail
+    );
 
     // Create token transaction for the gift
     const { error: transactionError } = await supabase
       .from('token_transactions')
       .insert({
-        user_id: recipient?.id || user.id, // Fallback if recipient not found
+        user_id: recipient?.id || user.id,
         amount: amount,
         transaction_type: 'gift',
         recipient_email: recipientEmail,
@@ -144,7 +148,7 @@ export const claimGiftedTokens = async (): Promise<number> => {
       .from('token_transactions')
       .select('*')
       .eq('recipient_email', user.email)
-      .is('user_id', null); // Unclaimed gifts
+      .is('user_id', null);
 
     if (error) throw error;
 
