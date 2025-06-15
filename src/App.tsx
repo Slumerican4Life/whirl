@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ErrorBoundary } from 'react-error-boundary';
+import ErrorBoundaryComponent from './components/ErrorBoundary';
 import Index from './pages/Index';
 import Upload from './pages/Upload';
 import BattlePage from './pages/BattlePage';
@@ -27,7 +28,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <div className="min-h-screen bg-gray-900 text-white">
-          <ErrorBoundary>
+          <ErrorBoundary FallbackComponent={ErrorBoundaryComponent}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/upload" element={<Upload />} />

@@ -1,11 +1,8 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
-import { Menu, MenuButton, MenuList, MenuItem } from '@reach/menu-button';
-import '@reach/menu-button/styles.css';
-import { ChevronDownIcon, MenuIcon, XIcon } from '@heroicons/react/solid';
+import { MenuIcon, XIcon } from '@heroicons/react/solid';
 
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
