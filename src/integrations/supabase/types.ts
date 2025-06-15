@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action_type: string
+          admin_user_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_identifier: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_user_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_identifier?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_user_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_identifier?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_agents: {
         Row: {
           avatar_url: string | null
@@ -278,6 +308,57 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      knight_arguments: {
+        Row: {
+          agent_id: string | null
+          argument_text: string
+          confidence_score: number
+          created_at: string
+          debate_id: string | null
+          evidence_sources: Json | null
+          id: string
+          position: string
+          round_number: number
+        }
+        Insert: {
+          agent_id?: string | null
+          argument_text: string
+          confidence_score?: number
+          created_at?: string
+          debate_id?: string | null
+          evidence_sources?: Json | null
+          id?: string
+          position: string
+          round_number?: number
+        }
+        Update: {
+          agent_id?: string | null
+          argument_text?: string
+          confidence_score?: number
+          created_at?: string
+          debate_id?: string | null
+          evidence_sources?: Json | null
+          id?: string
+          position?: string
+          round_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knight_arguments_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knight_arguments_debate_id_fkey"
+            columns: ["debate_id"]
+            isOneToOne: false
+            referencedRelation: "video_debates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       owner_settings: {
         Row: {
@@ -810,6 +891,57 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_debates: {
+        Row: {
+          created_at: string
+          debate_round: number
+          final_verdict: string | null
+          id: string
+          status: string
+          truth_score: number | null
+          updated_at: string
+          video_id: string | null
+          viral_content_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          debate_round?: number
+          final_verdict?: string | null
+          id?: string
+          status?: string
+          truth_score?: number | null
+          updated_at?: string
+          video_id?: string | null
+          viral_content_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          debate_round?: number
+          final_verdict?: string | null
+          id?: string
+          status?: string
+          truth_score?: number | null
+          updated_at?: string
+          video_id?: string | null
+          viral_content_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_debates_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_debates_viral_content_id_fkey"
+            columns: ["viral_content_id"]
+            isOneToOne: false
+            referencedRelation: "viral_content"
             referencedColumns: ["id"]
           },
         ]
