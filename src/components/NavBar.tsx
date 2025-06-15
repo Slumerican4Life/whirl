@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
-import { MenuIcon, XIcon } from '@heroicons/react/solid';
+import { Menu, X } from 'lucide-react';
 
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,9 +38,9 @@ const NavBar = () => {
 
             <button onClick={toggleMenu} className="text-gray-300 hover:text-white focus:outline-none">
               {isMenuOpen ? (
-                <XIcon className="h-6 w-6" />
+                <X className="h-6 w-6" />
               ) : (
-                <MenuIcon className="h-6 w-6" />
+                <Menu className="h-6 w-6" />
               )}
             </button>
           </div>
