@@ -28,7 +28,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <div className="min-h-screen bg-gray-900 text-white">
-          <ErrorBoundary FallbackComponent={ErrorBoundaryComponent}>
+          <ErrorBoundary FallbackComponent={ErrorBoundaryComponent} onError={(error) => console.error('Error caught by boundary:', error)}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/upload" element={<Upload />} />
