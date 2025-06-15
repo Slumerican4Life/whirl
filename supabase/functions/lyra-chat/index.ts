@@ -19,6 +19,10 @@ serve(async (req) => {
     const { message, pageContext, userContext } = await req.json();
     console.log('Lyra AI request:', { message, pageContext, userContext });
 
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
     // Get help articles for context
     const supabase = createSupabaseClient(false);
     const { data: helpArticles } = await supabase
@@ -36,6 +40,9 @@ PLATFORM FEATURES:
 - Categories: General, Comedy, Music, Sports, Gaming, Art, Slumerican
 - User profiles with stats and badges
 - Video uploads with automatic thumbnail generation
+- Viral content section with trending videos from TikTok, YouTube, Instagram & Facebook
+- Truth verification system with AI agents analyzing content
+- Knights Round Table debates for fact-checking
 
 CURRENT PAGE: ${pageContext?.currentPage || 'Homepage'}
 USER STATUS: ${userContext?.isLoggedIn ? 'Logged in' : 'Not logged in'}
