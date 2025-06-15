@@ -2,154 +2,122 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export interface AdminUser {
+export interface UserSearchResult {
   id: string;
-  email: string;
-  phone: string;
-  full_name: string | null;
+  username: string | null;
   avatar_url: string | null;
-  created_at: string;
   tokens: number;
-  role: string;
-}
-
-export interface AdminAction {
-  id: string;
-  action_type: "token_gift" | "user_search" | "role_assignment";
-  admin_user_id: string;
-  target_user_id: string;
-  target_identifier: string;
-  details: Record<string, any>;
+  role: string | null;
   created_at: string;
 }
 
-export const searchUsers = async (searchTerm: string): Promise<AdminUser[]> => {
+/**
+ * Searches for users by email or phone number
+ */
+export const searchUsersByIdentifier = async (identifier: string): Promise<UserSearchResult[]> => {
   try {
-    const { data, error } = await supabase
+    console.log("Searching for users with identifier:", identifier);
+    
+    // First, get profiles that match the username
+    const { data: profiles, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .or(`email.ilike.%${searchTerm}%,full_name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`)
-      .limit(10);
+      .ilike('username', `%${identifier}%`);
 
-    if (error) {
-      console.error('Error searching users:', error);
+    if (profileError) {
+      console.error("Error searching profiles:", profileError);
       return [];
     }
 
-    return (data || []).map(user => ({
-      id: user.id,
-      email: user.email || '',
-      phone: user.phone || '',
-      full_name: user.full_name,
-      avatar_url: user.avatar_url,
-      created_at: user.created_at,
-      tokens: user.tokens || 0,
-      role: user.role || 'user'
-    }));
-  } catch (error) {
-    console.error('Error searching users:', error);
+    if (!profiles || profiles.length === 0) {
+      console.log("No profiles found matching identifier");
+      return [];
+    }
+
+    // For each profile, get additional data
+    const userResults: UserSearchResult[] = [];
+    
+    for (const profile of profiles) {
+      // Get token balance
+      const { data: wallet } = await supabase
+        .from('token_wallets')
+        .select('balance')
+        .eq('user_id', profile.id)
+        .single();
+
+      // Get user role
+      const { data: userRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', profile.id)
+        .single();
+
+      userResults.push({
+        id: profile.id,
+        username: profile.username,
+        avatar_url: profile.avatar_url,
+        tokens: wallet?.balance || 0,
+        role: userRole?.role || null,
+        created_at: profile.created_at,
+      });
+    }
+
+    return userResults;
+  } catch (error: any) {
+    console.error("Error in searchUsersByIdentifier:", error);
+    toast.error("Failed to search users");
     return [];
   }
 };
 
-export const giftTokensToUser = async (
-  userId: string, 
-  tokenAmount: number, 
-  message?: string
-): Promise<boolean> => {
+/**
+ * Gets detailed user information by user ID
+ */
+export const getUserDetails = async (userId: string) => {
   try {
-    // First get current admin user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Not authenticated");
-      return false;
-    }
-
-    // Get user info for logging
-    const { data: targetUser } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
-      .select('email, full_name')
+      .select('*')
       .eq('id', userId)
       .single();
 
-    // Use edge function to handle token gifting
-    const { data, error } = await supabase.functions.invoke('spend-token', {
-      body: {
-        action: 'admin_gift',
-        user_id: userId,
-        amount: tokenAmount,
-        message: message || 'Admin token gift'
-      }
-    });
-
     if (error) {
-      console.error('Error gifting tokens:', error);
-      toast.error("Failed to gift tokens");
-      return false;
+      console.error("Error fetching user details:", error);
+      return null;
     }
 
-    // Log the admin action
-    await logAdminAction({
-      action_type: 'token_gift',
-      admin_user_id: user.id,
-      target_user_id: userId,
-      target_identifier: targetUser?.email || userId,
-      details: {
-        amount: tokenAmount,
-        message: message || 'Admin token gift'
-      }
-    });
-
-    toast.success(`Successfully gifted ${tokenAmount} tokens`);
-    return true;
-  } catch (error) {
-    console.error('Error gifting tokens:', error);
-    toast.error("Failed to gift tokens");
-    return false;
+    return profile;
+  } catch (error: any) {
+    console.error("Error getting user details:", error);
+    return null;
   }
 };
 
-export const logAdminAction = async (action: Omit<AdminAction, 'id' | 'created_at'>) => {
+/**
+ * Logs admin actions for audit trail
+ */
+export const logAdminAction = async (
+  actionType: string,
+  targetIdentifier?: string,
+  targetUserId?: string,
+  details?: Record<string, any>
+) => {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
     const { error } = await supabase
       .from('admin_actions')
       .insert([{
-        ...action,
-        created_at: new Date().toISOString()
+        admin_user_id: user.id,
+        action_type: actionType,
+        target_identifier: targetIdentifier,
+        target_user_id: targetUserId,
+        details: details || {}
       }]);
 
-    if (error) {
-      console.error('Error logging admin action:', error);
-    }
-  } catch (error) {
-    console.error('Error logging admin action:', error);
-  }
-};
-
-export const getAdminActions = async (): Promise<AdminAction[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('admin_actions')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) {
-      console.error('Error fetching admin actions:', error);
-      return [];
-    }
-
-    return (data || []).map(action => ({
-      id: action.id,
-      action_type: action.action_type as "token_gift" | "user_search" | "role_assignment",
-      admin_user_id: action.admin_user_id,
-      target_user_id: action.target_user_id,
-      target_identifier: action.target_identifier,
-      details: typeof action.details === 'object' ? action.details as Record<string, any> : {},
-      created_at: action.created_at
-    }));
-  } catch (error) {
-    console.error('Error fetching admin actions:', error);
-    return [];
+    if (error) throw error;
+  } catch (error: any) {
+    console.error("Error logging admin action:", error);
   }
 };

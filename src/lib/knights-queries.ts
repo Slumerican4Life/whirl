@@ -62,7 +62,7 @@ export const getKnightAgents = async (): Promise<KnightAgent[]> => {
 export const getTruthDebates = async (): Promise<TruthDebate[]> => {
   try {
     const { data, error } = await supabase
-      .from('truth_debates')
+      .from('video_debates')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(10);
@@ -72,7 +72,15 @@ export const getTruthDebates = async (): Promise<TruthDebate[]> => {
       return [];
     }
 
-    return data || [];
+    return (data || []).map(debate => ({
+      id: debate.id,
+      truth_video_id: debate.video_id || debate.viral_content_id || '',
+      current_round: debate.debate_round,
+      status: debate.status as 'active' | 'completed' | 'paused',
+      truth_meter: debate.truth_score || 50,
+      participant_count: 0, // This would need to be calculated separately
+      created_at: debate.created_at
+    }));
   } catch (error: any) {
     console.error("Error fetching truth debates:", error);
     return [];
@@ -168,13 +176,12 @@ export const createKnightArgument = async (
 export const createTruthDebate = async (truthVideoId: string): Promise<TruthDebate> => {
   try {
     const { data, error } = await supabase
-      .from('truth_debates')
+      .from('video_debates')
       .insert([{
-        truth_video_id: truthVideoId,
-        current_round: 1,
+        video_id: truthVideoId,
+        debate_round: 1,
         status: 'active',
-        truth_meter: 50.0,
-        participant_count: 0
+        truth_score: 50
       }])
       .select('*')
       .single();
@@ -184,7 +191,15 @@ export const createTruthDebate = async (truthVideoId: string): Promise<TruthDeba
       throw error;
     }
 
-    return data;
+    return {
+      id: data.id,
+      truth_video_id: data.video_id || data.viral_content_id || '',
+      current_round: data.debate_round,
+      status: data.status as 'active' | 'completed' | 'paused',
+      truth_meter: data.truth_score || 50,
+      participant_count: 0,
+      created_at: data.created_at
+    };
   } catch (error: any) {
     console.error("Error creating truth debate:", error);
     throw error;
@@ -194,8 +209,8 @@ export const createTruthDebate = async (truthVideoId: string): Promise<TruthDeba
 export const updateTruthMeter = async (debateId: string, newScore: number): Promise<void> => {
   try {
     const { error } = await supabase
-      .from('truth_debates')
-      .update({ truth_meter: newScore })
+      .from('video_debates')
+      .update({ truth_score: newScore })
       .eq('id', debateId);
 
     if (error) {
