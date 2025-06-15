@@ -7,6 +7,7 @@ import ViralContentSection from "@/components/ViralContentSection";
 import TruthSectionPreview from "@/components/TruthSectionPreview";
 import ElementalWhirlwind from "@/components/ElementalWhirlwind";
 import AdSenseUnit from "@/components/AdSenseUnit";
+import NavBar from "@/components/NavBar";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useQuery } from "@tanstack/react-query";
 import { getBattlesByCategory } from "@/lib/battle-queries";
@@ -24,11 +25,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white relative">
+      <NavBar />
+      
       {/* Animated Background */}
       <ElementalWhirlwind />
       
       {/* Main Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 pt-16">
         <HeroSection />
         
         {/* Ad after Hero */}

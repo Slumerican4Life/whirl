@@ -1,92 +1,121 @@
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { ThumbsUp } from "lucide-react";
-import { toast } from "sonner";
-import { voteInBattle } from "@/lib/battle-queries";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Heart, Coins, Zap } from 'lucide-react';
+import { useTokens } from '@/hooks/useTokens';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface VotingControlsProps {
   battleId: string;
   videoId: string;
 }
 
-const VotingControls = ({ battleId, videoId }: VotingControlsProps) => {
-  const [voted, setVoted] = useState(false);
-  const [voting, setVoting] = useState(false);
-  const [voteCount, setVoteCount] = useState(0);
-  
-  useEffect(() => {
-    const checkVoteStatus = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+const VotingControls: React.FC<VotingControlsProps> = ({ battleId, videoId }) => {
+  const [voteAmount, setVoteAmount] = useState(1);
+  const [isVoting, setIsVoting] = useState(false);
+  const { balance, spendTokens } = useTokens();
+  const { user } = useAuth();
 
-        // Check if user already voted in this battle
-        const { data: battle } = await supabase
-          .from('battles')
-          .select('video1_id, video2_id')
-          .eq('id', battleId)
-          .single();
-
-        if (battle) {
-          const { data: existingVote } = await supabase
-            .from('votes')
-            .select('id')
-            .eq('user_id', user.id)
-            .in('video_id', [battle.video1_id, battle.video2_id])
-            .single();
-
-          setVoted(!!existingVote);
-        }
-
-        // Get current vote count for this video
-        const { data: votes } = await supabase
-          .from('votes')
-          .select('id')
-          .eq('video_id', videoId);
-
-        setVoteCount(votes?.length || 0);
-      } catch (error) {
-        console.error("Error checking vote status:", error);
-      }
-    };
-
-    checkVoteStatus();
-  }, [battleId, videoId]);
-  
   const handleVote = async () => {
-    if (voted) {
-      toast.error("You've already voted in this battle!");
+    if (!user) {
+      toast.error('Please sign in to vote');
       return;
     }
 
-    setVoting(true);
+    if (balance < voteAmount) {
+      toast.error('Insufficient token balance');
+      return;
+    }
+
+    setIsVoting(true);
+    
     try {
-      const success = await voteInBattle(battleId, videoId);
+      const success = await spendTokens(videoId, voteAmount);
       if (success) {
-        setVoted(true);
-        setVoteCount(prev => prev + 1);
+        setVoteAmount(1); // Reset to default
       }
     } catch (error) {
-      console.error("Error voting:", error);
+      console.error('Error voting:', error);
+      toast.error('Failed to cast vote');
     } finally {
-      setVoting(false);
+      setIsVoting(false);
     }
   };
-  
+
+  const presetAmounts = [1, 5, 10, 25];
+
   return (
-    <div className="space-y-2">
-      <Button 
-        onClick={handleVote}
-        disabled={voted || voting}
-        className={`w-full ${voted ? 'bg-gray-400' : 'bg-whirl-purple hover:bg-whirl-deep-purple'}`}
-      >
-        <ThumbsUp className="mr-2 h-4 w-4" />
-        {voting ? "Voting..." : voted ? "Voted" : "Vote"} 
-      </Button>
-      <div className="text-center text-sm text-gray-400">
-        {voteCount} {voteCount === 1 ? 'vote' : 'votes'}
+    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <div className="text-center mb-4">
+        <h3 className="text-xl font-bold text-white mb-2">Cast Your Vote</h3>
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+          <Coins className="h-4 w-4 text-yellow-400" />
+          <span>Balance: {balance} tokens</span>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {/* Preset vote amounts */}
+        <div className="grid grid-cols-4 gap-2">
+          {presetAmounts.map((amount) => (
+            <Button
+              key={amount}
+              variant={voteAmount === amount ? "default" : "outline"}
+              className={`text-sm ${
+                voteAmount === amount 
+                  ? 'bg-red-500 hover:bg-red-600' 
+                  : 'border-gray-600 hover:border-red-500'
+              }`}
+              onClick={() => setVoteAmount(amount)}
+              disabled={balance < amount}
+            >
+              <Coins className="h-3 w-3 mr-1" />
+              {amount}
+            </Button>
+          ))}
+        </div>
+
+        {/* Custom amount input */}
+        <div className="flex gap-2">
+          <Input
+            type="number"
+            min="1"
+            max={balance}
+            value={voteAmount}
+            onChange={(e) => setVoteAmount(Math.max(1, parseInt(e.target.value) || 1))}
+            className="bg-gray-700 border-gray-600 text-white"
+            placeholder="Custom amount"
+          />
+          <Badge variant="secondary" className="flex items-center whitespace-nowrap">
+            <Zap className="h-3 w-3 mr-1" />
+            {voteAmount}x Power
+          </Badge>
+        </div>
+
+        {/* Vote button */}
+        <Button
+          onClick={handleVote}
+          disabled={isVoting || balance < voteAmount || !user}
+          className="w-full bg-gradient-to-r from-red-500 to-purple-600 hover:from-red-600 hover:to-purple-700 text-white font-bold py-3"
+        >
+          {isVoting ? (
+            'Casting Vote...'
+          ) : (
+            <>
+              <Heart className="h-4 w-4 mr-2" />
+              Vote with {voteAmount} Token{voteAmount !== 1 ? 's' : ''}
+            </>
+          )}
+        </Button>
+
+        {balance < 5 && (
+          <p className="text-center text-sm text-yellow-400">
+            💡 Low on tokens? <a href="/profile?tab=tokens" className="underline hover:text-yellow-300">Buy more tokens</a>
+          </p>
+        )}
       </div>
     </div>
   );

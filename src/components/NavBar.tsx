@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { Menu, X } from 'lucide-react';
+import TokenBalance from './TokenBalance';
 
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,13 +37,16 @@ const NavBar = () => {
               </span>
             </Link>
 
-            <button onClick={toggleMenu} className="text-gray-300 hover:text-white focus:outline-none">
-              {isMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
+            <div className="flex items-center gap-3">
+              {user && <TokenBalance showPurchaseButton={false} />}
+              <button onClick={toggleMenu} className="text-gray-300 hover:text-white focus:outline-none">
+                {isMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -81,7 +85,7 @@ const NavBar = () => {
                   </Link>
                   <button 
                     onClick={handleSignOut}
-                    className="text-gray-300 hover:text-red-500 transition-colors"
+                    className="text-gray-300 hover:text-red-500 transition-colors text-left"
                   >
                     Sign Out
                   </button>
@@ -134,6 +138,7 @@ const NavBar = () => {
               
               {user ? (
                 <div className="flex items-center space-x-4">
+                  <TokenBalance />
                   {(role === 'admin' || role === 'owner') && (
                     <Link to="/admin" className="text-gray-300 hover:text-green-500 transition-colors">
                       Admin
