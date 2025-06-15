@@ -26,7 +26,7 @@ export interface AdminAction {
   action_type: string;
   target_identifier: string | null;
   target_user_id: string | null;
-  details: Record<string, any>;
+  details: any; // Changed from Record<string, any> to any to handle Json type
   created_at: string;
 }
 
