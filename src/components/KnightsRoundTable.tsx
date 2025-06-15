@@ -5,381 +5,241 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Textarea } from '@/components/ui/textarea';
-import { Sword, Shield, Brain, Crown, Search, Gavel, Scroll, Wand2, Users, Heart, Zap, Music } from 'lucide-react';
-import { getAIAgents } from '@/lib/viral-content-queries';
-import { getViralContent } from '@/lib/viral-content-queries';
-import { createVideoDebate, getVideoDebates, getKnightArguments, addKnightArgument, updateTruthScore } from '@/lib/knights-queries';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Shield, Sword, Crown, Clock, Users } from 'lucide-react';
+import { 
+  getKnightAgents, 
+  getTruthDebates, 
+  getKnightArguments, 
+  createKnightArgument,
+  createTruthDebate,
+  updateTruthMeter,
+  type KnightAgent,
+  type TruthDebate,
+  type KnightArgument
+} from '@/lib/knights-queries';
 import { toast } from 'sonner';
-import LoadingFallback from './LoadingFallback';
 
-const getKnightIcon = (name: string) => {
-  switch (name) {
-    case 'Sir Calcifer': return <Brain className="h-6 w-6" />;
-    case 'Dame Sophia': return <Search className="h-6 w-6" />;
-    case 'High Scribe Enoch': return <Scroll className="h-6 w-6" />;
-    case 'Blackwatch Solomon': return <Shield className="h-6 w-6" />;
-    case 'Sir Galahad the Pure': return <Crown className="h-6 w-6" />;
-    case 'Dame Morgana the Wise': return <Wand2 className="h-6 w-6" />;
-    case 'Sir Lancelot the Bold': return <Sword className="h-6 w-6" />;
-    case 'Sir Gawain the Strong': return <Shield className="h-6 w-6" />;
-    case 'Sir Percival the Seeker': return <Search className="h-6 w-6" />;
-    case 'Dame Guinevere the Noble': return <Gavel className="h-6 w-6" />;
-    case 'Sir Gareth the Young': return <Zap className="h-6 w-6" />;
-    case 'Sir Tristan the Bard': return <Music className="h-6 w-6" />;
-    default: return <Sword className="h-6 w-6" />;
-  }
-};
+interface KnightsRoundTableProps {
+  truthVideoId?: string;
+}
 
-const getKnightPosition = (index: number, total: number) => {
-  const angle = (index * 360) / total;
-  const radius = 45; // percentage from center
-  const x = 50 + radius * Math.cos((angle - 90) * Math.PI / 180);
-  const y = 50 + radius * Math.sin((angle - 90) * Math.PI / 180);
-  return { x, y, angle };
-};
-
-const KnightsRoundTable = () => {
-  const [selectedVideo, setSelectedVideo] = useState<any>(null);
-  const [currentDebate, setCurrentDebate] = useState<any>(null);
-  const [truthScore, setTruthScore] = useState(50);
+const KnightsRoundTable: React.FC<KnightsRoundTableProps> = ({ truthVideoId }) => {
+  const [selectedDebate, setSelectedDebate] = useState<string | null>(null);
+  const [currentRound, setCurrentRound] = useState(1);
   const queryClient = useQueryClient();
 
-  const { data: knights, isLoading: knightsLoading } = useQuery({
-    queryKey: ['ai-agents'],
-    queryFn: getAIAgents,
+  const { data: knights = [] } = useQuery({
+    queryKey: ['knight-agents'],
+    queryFn: getKnightAgents,
   });
 
-  const { data: viralContent, isLoading: contentLoading } = useQuery({
-    queryKey: ['viral-content'],
-    queryFn: getViralContent,
+  const { data: debates = [] } = useQuery({
+    queryKey: ['truth-debates'],
+    queryFn: getTruthDebates,
   });
 
-  const { data: debates, refetch: refetchDebates } = useQuery({
-    queryKey: ['video-debates', selectedVideo?.id],
-    queryFn: () => selectedVideo ? getVideoDebates(selectedVideo.id, true) : Promise.resolve([]),
-    enabled: !!selectedVideo,
-  });
-
-  const { data: arguments, refetch: refetchArguments } = useQuery({
-    queryKey: ['knight-arguments', currentDebate?.id],
-    queryFn: () => currentDebate ? getKnightArguments(currentDebate.id) : Promise.resolve([]),
-    enabled: !!currentDebate,
+  const { data: knightArgs = [] } = useQuery({
+    queryKey: ['knight-arguments', selectedDebate],
+    queryFn: () => selectedDebate ? getKnightArguments(selectedDebate) : Promise.resolve([]),
+    enabled: !!selectedDebate,
   });
 
   const createDebateMutation = useMutation({
-    mutationFn: ({ videoId, isViral }: { videoId: string; isViral: boolean }) => 
-      createVideoDebate(videoId, isViral),
-    onSuccess: (newDebate) => {
-      setCurrentDebate(newDebate);
-      refetchDebates();
-      toast.success('Knights have been summoned to analyze this video!');
-      simulateKnightArguments(newDebate.id);
+    mutationFn: (videoId: string) => createTruthDebate(videoId),
+    onSuccess: (debate) => {
+      setSelectedDebate(debate.id);
+      queryClient.invalidateQueries({ queryKey: ['truth-debates'] });
+      toast.success('Truth debate initiated!');
     },
     onError: (error) => {
-      console.error('Failed to create debate:', error);
-      toast.error('Failed to summon the knights');
+      console.error('Error creating debate:', error);
+      toast.error('Failed to create debate');
     },
   });
 
-  const addArgumentMutation = useMutation({
-    mutationFn: addKnightArgument,
+  const createArgumentMutation = useMutation({
+    mutationFn: (params: {
+      debateId: string;
+      agentId: string;
+      argumentText: string;
+      position: 'true' | 'false' | 'uncertain';
+      confidenceScore: number;
+      evidenceSources?: any[];
+      roundNumber?: number;
+    }) => createKnightArgument(
+      params.debateId,
+      params.agentId,
+      params.argumentText,
+      params.position,
+      params.confidenceScore,
+      params.evidenceSources || [],
+      params.roundNumber || 1
+    ),
     onSuccess: () => {
-      refetchArguments();
-      queryClient.invalidateQueries({ queryKey: ['knight-arguments'] });
+      queryClient.invalidateQueries({ queryKey: ['knight-arguments', selectedDebate] });
+      toast.success('Knight has spoken!');
+    },
+    onError: (error) => {
+      console.error('Error creating argument:', error);
+      toast.error('Failed to create argument');
     },
   });
 
-  const updateScoreMutation = useMutation({
-    mutationFn: ({ debateId, score }: { debateId: string; score: number }) => 
-      updateTruthScore(debateId, score),
-    onSuccess: () => {
-      toast.success('Truth score updated!');
-    },
-  });
+  const handleKnightSpeak = async (knight: KnightAgent) => {
+    if (!selectedDebate) return;
 
-  const simulateKnightArguments = async (debateId: string) => {
-    if (!knights) return;
+    const sampleArguments = [
+      "The evidence presented shows clear inconsistencies with established facts.",
+      "Historical precedent supports the validity of this claim.",
+      "The source material requires further verification before conclusions can be drawn.",
+      "Cross-referencing multiple databases reveals contradictory information.",
+      "The testimony aligns with documented evidence from reliable sources."
+    ];
 
-    // Simulate knights analyzing and debating
     const positions: ('true' | 'false' | 'uncertain')[] = ['true', 'false', 'uncertain'];
-    
-    for (let i = 0; i < Math.min(knights.length, 6); i++) {
-      const knight = knights[i];
-      const position = positions[Math.floor(Math.random() * positions.length)];
-      const confidence = Math.floor(Math.random() * 40) + 60; // 60-100
-      
-      const argumentTexts = {
-        true: [
-          "My analysis reveals authentic markers in this content.",
-          "The evidence supports the veracity of these claims.",
-          "Cross-referencing sources confirms this information.",
-          "Technical analysis shows no signs of manipulation."
-        ],
-        false: [
-          "I detect clear signs of deception in this material.",
-          "Multiple inconsistencies undermine credibility.",
-          "Evidence contradicts the presented narrative.",
-          "Digital forensics reveal manipulation."
-        ],
-        uncertain: [
-          "The evidence is inconclusive at this time.",
-          "Further investigation is required for certainty.",
-          "Mixed signals prevent a definitive verdict.",
-          "Additional verification needed."
-        ]
-      };
+    const randomPosition = positions[Math.floor(Math.random() * positions.length)];
+    const randomArgument = sampleArguments[Math.floor(Math.random() * sampleArguments.length)];
+    const confidence = Math.floor(Math.random() * 40) + 60; // 60-100% confidence
 
-      const argumentText = argumentTexts[position][Math.floor(Math.random() * argumentTexts[position].length)];
-
-      try {
-        await addArgumentMutation.mutateAsync({
-          debateId,
-          agentId: knight.id,
-          argumentText,
-          position,
-          confidenceScore: confidence,
-          evidenceSources: [],
-          roundNumber: 1
-        });
-
-        // Small delay between arguments for dramatic effect
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error('Failed to add knight argument:', error);
-      }
-    }
-
-    // Calculate final truth score based on arguments
-    const trueArgs = Math.floor(Math.random() * 3) + 1;
-    const falseArgs = Math.floor(Math.random() * 3) + 1;
-    const uncertainArgs = Math.floor(Math.random() * 2);
-    
-    const totalArgs = trueArgs + falseArgs + uncertainArgs;
-    const score = Math.round((trueArgs / totalArgs) * 100);
-    
-    setTruthScore(score);
-    updateScoreMutation.mutate({ debateId, score });
-  };
-
-  const startAnalysis = () => {
-    if (!selectedVideo) {
-      toast.error('Please select a video first');
-      return;
-    }
-
-    createDebateMutation.mutate({
-      videoId: selectedVideo.id,
-      isViral: true
+    createArgumentMutation.mutate({
+      debateId: selectedDebate,
+      agentId: knight.id,
+      argumentText: randomArgument,
+      position: randomPosition,
+      confidenceScore: confidence,
+      evidenceSources: [],
+      roundNumber: currentRound
     });
   };
 
-  if (knightsLoading || contentLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-        <LoadingFallback 
-          title="Assembling the Knights"
-          description="The Round Table is being prepared..."
-        />
-      </div>
-    );
-  }
+  const startNewDebate = () => {
+    if (truthVideoId) {
+      createDebateMutation.mutate(truthVideoId);
+    } else {
+      // Create a mock debate for demo
+      createDebateMutation.mutate('demo-video-' + Date.now());
+    }
+  };
+
+  const getPositionColor = (position: string) => {
+    switch (position) {
+      case 'true': return 'bg-green-500';
+      case 'false': return 'bg-red-500';
+      case 'uncertain': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const calculateTruthMeter = () => {
+    if (knightArgs.length === 0) return 50;
+    
+    const trueCount = knightArgs.filter(arg => arg.position === 'true').length;
+    const falseCount = knightArgs.filter(arg => arg.position === 'false').length;
+    const total = knightArgs.length;
+    
+    return Math.round((trueCount / total) * 100);
+  };
+
+  useEffect(() => {
+    if (selectedDebate && knightArgs.length > 0) {
+      const newTruthScore = calculateTruthMeter();
+      updateTruthMeter(selectedDebate, newTruthScore);
+    }
+  }, [knightArgs, selectedDebate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-8">
-      <div className="container mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Knights of the Round Table</h1>
-          <p className="text-gray-300">12 AI Knights debating truth in the digital realm</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Video Selection Panel */}
-          <div className="lg:col-span-1">
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Select Video to Analyze</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {viralContent?.slice(0, 5).map((video) => (
-                  <div
-                    key={video.id}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                      selectedVideo?.id === video.id
-                        ? 'border-red-500 bg-red-500/10'
-                        : 'border-gray-600 hover:border-gray-500'
-                    }`}
-                    onClick={() => setSelectedVideo(video)}
-                  >
-                    <h4 className="text-white font-medium text-sm">{video.title}</h4>
-                    <p className="text-gray-400 text-xs mt-1">{video.platform}</p>
-                  </div>
-                ))}
-                
-                {selectedVideo && (
-                  <Button 
-                    onClick={startAnalysis}
-                    className="w-full bg-red-500 hover:bg-red-600"
-                    disabled={createDebateMutation.isPending}
-                  >
-                    {createDebateMutation.isPending ? 'Summoning Knights...' : 'Begin Analysis'}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Truth Meter */}
-            {currentDebate && (
-              <Card className="bg-gray-800 border-gray-700 mt-6">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    Truth Meter
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Progress value={truthScore} className="h-4" />
-                    <div className="flex justify-between text-sm">
-                      <span className="text-red-400">Likely False</span>
-                      <span className="text-white font-bold">{truthScore}%</span>
-                      <span className="text-green-400">Likely True</span>
-                    </div>
-                    <Badge 
-                      className={
-                        truthScore > 70 ? 'bg-green-500' :
-                        truthScore > 40 ? 'bg-yellow-500' : 'bg-red-500'
-                      }
-                    >
-                      {truthScore > 70 ? 'LIKELY TRUE' :
-                       truthScore > 40 ? 'UNCERTAIN' : 'LIKELY FALSE'}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+    <div className="space-y-6">
+      <Card className="bg-gray-800 border-yellow-500">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-yellow-500">
+            <Crown className="h-6 w-6" />
+            Knights of the Round Table
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="border-yellow-500 text-yellow-500">
+                <Shield className="h-4 w-4 mr-2" />
+                {knights.length} Knights Ready
+              </Badge>
+              {selectedDebate && (
+                <Badge variant="outline" className="border-blue-500 text-blue-500">
+                  <Users className="h-4 w-4 mr-2" />
+                  Round {currentRound}
+                </Badge>
+              )}
+            </div>
+            <Button onClick={startNewDebate} className="bg-yellow-600 hover:bg-yellow-700">
+              <Sword className="h-4 w-4 mr-2" />
+              Start Truth Debate
+            </Button>
           </div>
 
-          {/* Round Table */}
-          <div className="lg:col-span-2">
-            <Card className="bg-gray-800 border-gray-700">
+          {selectedDebate && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-white font-semibold">Truth Meter:</span>
+                <span className="text-yellow-500">{calculateTruthMeter()}%</span>
+              </div>
+              <Progress value={calculateTruthMeter()} className="h-3" />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+            {knights.slice(0, 12).map((knight) => (
+              <Card 
+                key={knight.id} 
+                className="bg-gray-700 border-gray-600 hover:border-yellow-500 transition-colors cursor-pointer"
+                onClick={() => handleKnightSpeak(knight)}
+              >
+                <CardContent className="p-3 text-center">
+                  <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <h4 className="text-white text-sm font-semibold mb-1">{knight.name}</h4>
+                  <p className="text-gray-400 text-xs">{knight.title}</p>
+                  <Badge variant="outline" className="mt-2 text-xs border-yellow-500 text-yellow-500">
+                    {knight.specialization}
+                  </Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {selectedDebate && (
+            <Card className="bg-gray-700 border-gray-600">
               <CardHeader>
-                <CardTitle className="text-white text-center">The Round Table</CardTitle>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Debate Arguments
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="relative aspect-square max-w-2xl mx-auto">
-                  {/* Table Background */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-900/20 to-amber-700/20 border-4 border-amber-600/30">
-                    <div className="absolute inset-4 rounded-full bg-gradient-to-br from-amber-800/10 to-amber-600/10 border-2 border-amber-500/20">
-                      {/* Center Crest */}
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center">
-                          <Crown className="h-8 w-8 text-white" />
+                <ScrollArea className="h-64">
+                  <div className="space-y-3">
+                    {knightArgs.map((argument) => (
+                      <div key={argument.id} className="bg-gray-800 p-3 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge className={getPositionColor(argument.position)}>
+                            {argument.position.toUpperCase()}
+                          </Badge>
+                          <span className="text-white font-semibold">{argument.agent.name}</span>
+                          <span className="text-gray-400 text-sm">
+                            Confidence: {argument.confidence_score}%
+                          </span>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Knights Positions */}
-                  {knights?.slice(0, 12).map((knight, index) => {
-                    const position = getKnightPosition(index, Math.min(knights.length, 12));
-                    const argument = arguments?.find(arg => arg.agent_id === knight.id);
-                    
-                    return (
-                      <div
-                        key={knight.id}
-                        className="absolute transform -translate-x-1/2 -translate-y-1/2"
-                        style={{
-                          left: `${position.x}%`,
-                          top: `${position.y}%`
-                        }}
-                      >
-                        <div className={`relative group cursor-pointer ${argument ? 'animate-pulse' : ''}`}>
-                          <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${
-                            argument?.position === 'true' ? 'bg-green-500 border-green-400' :
-                            argument?.position === 'false' ? 'bg-red-500 border-red-400' :
-                            argument?.position === 'uncertain' ? 'bg-yellow-500 border-yellow-400' :
-                            'bg-gray-600 border-gray-500'
-                          }`}>
-                            {getKnightIcon(knight.name)}
-                          </div>
-                          
-                          {/* Knight Info Tooltip */}
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                            <div className="bg-black/90 text-white text-xs p-2 rounded-lg whitespace-nowrap">
-                              <div className="font-bold">{knight.name}</div>
-                              <div className="text-gray-300">{knight.title}</div>
-                              {argument && (
-                                <div className="mt-1">
-                                  <div className={`text-xs ${
-                                    argument.position === 'true' ? 'text-green-400' :
-                                    argument.position === 'false' ? 'text-red-400' :
-                                    'text-yellow-400'
-                                  }`}>
-                                    {argument.position.toUpperCase()} ({argument.confidence_score}%)
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Sword when knight has argued */}
-                          {argument && (
-                            <div className="absolute -top-2 -right-2">
-                              <Sword className="h-4 w-4 text-amber-400" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Arguments Panel */}
-            {arguments && arguments.length > 0 && (
-              <Card className="bg-gray-800 border-gray-700 mt-6">
-                <CardHeader>
-                  <CardTitle className="text-white">Knight Arguments</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {arguments.map((argument) => (
-                      <div key={argument.id} className="border border-gray-600 rounded-lg p-4">
-                        <div className="flex items-start gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            argument.position === 'true' ? 'bg-green-500' :
-                            argument.position === 'false' ? 'bg-red-500' :
-                            'bg-yellow-500'
-                          }`}>
-                            {getKnightIcon(argument.agent.name)}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-white font-medium">{argument.agent.name}</span>
-                              <Badge variant="outline" className={
-                                argument.position === 'true' ? 'border-green-500 text-green-400' :
-                                argument.position === 'false' ? 'border-red-500 text-red-400' :
-                                'border-yellow-500 text-yellow-400'
-                              }>
-                                {argument.position.toUpperCase()}
-                              </Badge>
-                              <span className="text-gray-400 text-sm">{argument.confidence_score}% confident</span>
-                            </div>
-                            <p className="text-gray-300 text-sm">{argument.argument_text}</p>
-                          </div>
-                        </div>
+                        <p className="text-gray-300 text-sm">{argument.argument_text}</p>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

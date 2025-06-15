@@ -1,16 +1,25 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export interface VideoDebate {
+export interface KnightAgent {
   id: string;
-  video_id?: string;
-  viral_content_id?: string;
-  debate_round: number;
-  status: string;
-  truth_score: number;
-  final_verdict?: string;
+  name: string;
+  title: string;
+  description: string;
+  specialization: string;
+  personality: Record<string, any>;
+  avatar_url: string | null;
   created_at: string;
-  updated_at: string;
+}
+
+export interface TruthDebate {
+  id: string;
+  truth_video_id: string;
+  current_round: number;
+  status: 'active' | 'completed' | 'paused';
+  truth_meter: number;
+  participant_count: number;
+  created_at: string;
 }
 
 export interface KnightArgument {
@@ -23,107 +32,89 @@ export interface KnightArgument {
   evidence_sources: any[];
   round_number: number;
   created_at: string;
-  agent: {
-    id: string;
-    name: string;
-    title: string;
-    description: string;
-    specialization: string;
-    personality: Record<string, any>;
-  };
+  agent: KnightAgent;
 }
 
-/**
- * Creates a new video debate for knights to analyze
- */
-export const createVideoDebate = async (videoId: string, isViralContent: boolean = true): Promise<VideoDebate> => {
-  const insertData = isViralContent 
-    ? { viral_content_id: videoId }
-    : { video_id: videoId };
+export const getKnightAgents = async (): Promise<KnightAgent[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('ai_agents')
+      .select('*')
+      .order('created_at', { ascending: true });
 
-  const { data, error } = await supabase
-    .from('video_debates')
-    .insert({
-      ...insertData,
-      status: 'active',
-      truth_score: 50,
-      debate_round: 1
-    })
-    .select()
-    .single();
+    if (error) {
+      console.error("Database error fetching knight agents:", error);
+      return [];
+    }
 
-  if (error) throw error;
-  return data;
+    return (data || []).map(agent => ({
+      ...agent,
+      personality: typeof agent.personality === 'string' 
+        ? JSON.parse(agent.personality) 
+        : (agent.personality as Record<string, any>) || {}
+    }));
+  } catch (error: any) {
+    console.error("Error fetching knight agents:", error);
+    return [];
+  }
 };
 
-/**
- * Gets all debates for a specific video
- */
-export const getVideoDebates = async (videoId: string, isViralContent: boolean = true): Promise<VideoDebate[]> => {
-  const column = isViralContent ? 'viral_content_id' : 'video_id';
-  
-  const { data, error } = await supabase
-    .from('video_debates')
-    .select('*')
-    .eq(column, videoId)
-    .order('created_at', { ascending: false });
+export const getTruthDebates = async (): Promise<TruthDebate[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('truth_debates')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-  if (error) throw error;
-  return data || [];
+    if (error) {
+      console.error("Database error fetching truth debates:", error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error: any) {
+    console.error("Error fetching truth debates:", error);
+    return [];
+  }
 };
 
-/**
- * Gets knight arguments for a debate
- */
 export const getKnightArguments = async (debateId: string): Promise<KnightArgument[]> => {
-  const { data, error } = await supabase
-    .from('knight_arguments')
-    .select(`
-      *,
-      agent:ai_agents(*)
-    `)
-    .eq('debate_id', debateId)
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('knight_arguments')
+      .select(`
+        *,
+        agent:ai_agents(*)
+      `)
+      .eq('debate_id', debateId)
+      .order('created_at', { ascending: true });
 
-  if (error) throw error;
-  return data || [];
+    if (error) {
+      console.error("Database error fetching knight arguments:", error);
+      return [];
+    }
+
+    return (data || []).map(arg => ({
+      ...arg,
+      position: arg.position as 'true' | 'false' | 'uncertain',
+      evidence_sources: Array.isArray(arg.evidence_sources) 
+        ? arg.evidence_sources 
+        : [],
+      agent: {
+        ...arg.agent,
+        personality: typeof arg.agent.personality === 'string'
+          ? JSON.parse(arg.agent.personality)
+          : (arg.agent.personality as Record<string, any>) || {}
+      }
+    }));
+  } catch (error: any) {
+    console.error("Error fetching knight arguments:", error);
+    return [];
+  }
 };
 
-/**
- * Updates the truth score for a debate
- */
-export const updateTruthScore = async (debateId: string, truthScore: number): Promise<void> => {
-  const { error } = await supabase
-    .from('video_debates')
-    .update({ 
-      truth_score: truthScore,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', debateId);
-
-  if (error) throw error;
-};
-
-/**
- * Finalizes a debate with a verdict
- */
-export const finalizeDebate = async (debateId: string, verdict: string): Promise<void> => {
-  const { error } = await supabase
-    .from('video_debates')
-    .update({ 
-      status: 'completed',
-      final_verdict: verdict,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', debateId);
-
-  if (error) throw error;
-};
-
-/**
- * Adds a knight argument to a debate
- */
-export const addKnightArgument = async (
+export const createKnightArgument = async (
   debateId: string,
   agentId: string,
   argumentText: string,
@@ -132,23 +123,87 @@ export const addKnightArgument = async (
   evidenceSources: any[] = [],
   roundNumber: number = 1
 ): Promise<KnightArgument> => {
-  const { data, error } = await supabase
-    .from('knight_arguments')
-    .insert({
-      debate_id: debateId,
-      agent_id: agentId,
-      argument_text: argumentText,
-      position,
-      confidence_score: confidenceScore,
-      evidence_sources: evidenceSources,
-      round_number: roundNumber
-    })
-    .select(`
-      *,
-      agent:ai_agents(*)
-    `)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('knight_arguments')
+      .insert([{
+        debate_id: debateId,
+        agent_id: agentId,
+        argument_text: argumentText,
+        position,
+        confidence_score: confidenceScore,
+        evidence_sources: evidenceSources,
+        round_number: roundNumber
+      }])
+      .select(`
+        *,
+        agent:ai_agents(*)
+      `)
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) {
+      console.error("Database error creating knight argument:", error);
+      throw error;
+    }
+
+    return {
+      ...data,
+      position: data.position as 'true' | 'false' | 'uncertain',
+      evidence_sources: Array.isArray(data.evidence_sources) 
+        ? data.evidence_sources 
+        : [],
+      agent: {
+        ...data.agent,
+        personality: typeof data.agent.personality === 'string'
+          ? JSON.parse(data.agent.personality)
+          : (data.agent.personality as Record<string, any>) || {}
+      }
+    };
+  } catch (error: any) {
+    console.error("Error creating knight argument:", error);
+    throw error;
+  }
+};
+
+export const createTruthDebate = async (truthVideoId: string): Promise<TruthDebate> => {
+  try {
+    const { data, error } = await supabase
+      .from('truth_debates')
+      .insert([{
+        truth_video_id: truthVideoId,
+        current_round: 1,
+        status: 'active',
+        truth_meter: 50.0,
+        participant_count: 0
+      }])
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error("Database error creating truth debate:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("Error creating truth debate:", error);
+    throw error;
+  }
+};
+
+export const updateTruthMeter = async (debateId: string, newScore: number): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('truth_debates')
+      .update({ truth_meter: newScore })
+      .eq('id', debateId);
+
+    if (error) {
+      console.error("Database error updating truth meter:", error);
+      throw error;
+    }
+  } catch (error: any) {
+    console.error("Error updating truth meter:", error);
+    throw error;
+  }
 };

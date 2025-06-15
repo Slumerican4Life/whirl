@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TrendingUp } from 'lucide-react';
-import { getViralContent, fetchNewViralContent } from '@/lib/viral-content-queries';
+import { getViralContent, fetchNewViralContent } from '@/lib/viral-content';
 import LoadingFallback from '@/components/LoadingFallback';
 import ViralContentHeader from '@/components/viral-content/ViralContentHeader';
 import ViralContentGrid from '@/components/viral-content/ViralContentGrid';
