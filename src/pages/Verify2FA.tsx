@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,8 @@ const Verify2FAPage = () => {
 
   useEffect(() => {
     if (!user) {
+      const lastPath = window.location.pathname;
+      localStorage.setItem('post2fa', lastPath);
       navigate("/enhanced-login");
       return;
     }
@@ -116,7 +117,14 @@ const Verify2FAPage = () => {
             .eq('user_id', user?.id);
 
           toast.success("Backup code verified successfully!");
-          navigate("/profile");
+          // After verify, reroute to last path if exists
+          const post2faPath = localStorage.getItem('post2fa');
+          if (post2faPath && post2faPath !== "/verify-2fa") {
+            localStorage.removeItem('post2fa');
+            navigate(post2faPath);
+          } else {
+            navigate("/profile");
+          }
         } else {
           toast.error("Invalid backup code");
         }
@@ -140,7 +148,14 @@ const Verify2FAPage = () => {
             .eq('id', data.id);
 
           toast.success("Two-factor authentication verified!");
-          navigate("/profile");
+          // After verify, reroute to last path if exists
+          const post2faPath = localStorage.getItem('post2fa');
+          if (post2faPath && post2faPath !== "/verify-2fa") {
+            localStorage.removeItem('post2fa');
+            navigate(post2faPath);
+          } else {
+            navigate("/profile");
+          }
         } else {
           toast.error("Invalid or expired verification code");
         }
