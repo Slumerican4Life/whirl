@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,7 +10,7 @@ import { ChevronDownIcon, MenuIcon, XIcon } from '@heroicons/react/solid';
 const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const { userRole, isLoading: roleLoading } = useRole();
+  const { role, loading: roleLoading } = useRole();
 
   const handleSignOut = async () => {
     await signOut();
@@ -72,7 +73,7 @@ const NavBar = () => {
               
               {user ? (
                 <>
-                  {(userRole === 'admin' || userRole === 'owner') && (
+                  {(role === 'admin' || role === 'owner') && (
                     <Link to="/admin" className="text-gray-300 hover:text-green-500 transition-colors" onClick={closeMenu}>
                       Admin
                     </Link>
@@ -135,7 +136,7 @@ const NavBar = () => {
               
               {user ? (
                 <div className="flex items-center space-x-4">
-                  {(userRole === 'admin' || userRole === 'owner') && (
+                  {(role === 'admin' || role === 'owner') && (
                     <Link to="/admin" className="text-gray-300 hover:text-green-500 transition-colors">
                       Admin
                     </Link>
