@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ErrorBoundary } from 'react-error-boundary';
 import ErrorBoundaryComponent from './components/ErrorBoundary';
@@ -23,40 +25,52 @@ import NotFound from './pages/NotFound';
 import LyraAssistant from './components/LyraAssistant';
 import ContentAgents from './pages/ContentAgents';
 
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <div className="min-h-screen bg-gray-900 text-white">
-          <ErrorBoundary 
-            fallback={<ErrorBoundaryComponent />}
-            onError={(error) => console.error('Error caught by boundary:', error)}
-          >
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/upload" element={<Upload />} />
-              <Route path="/battle/:id" element={<BattlePage />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/enhanced-login" element={<EnhancedLogin />} />
-              <Route path="/verify-2fa" element={<Verify2FA />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/payment-success" element={<PaymentSuccessPage />} />
-              <Route path="/slumerican" element={<Slumerican />} />
-              <Route path="/truth" element={<Truth />} />
-              <Route path="/knights-debate" element={<KnightsDebate />} />
-              <Route path="/content-agents" element={<ContentAgents />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ErrorBoundary>
-          <LyraAssistant />
-        </div>
-      </AuthProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <div className="min-h-screen bg-gray-900 text-white">
+            <ErrorBoundary 
+              fallback={<ErrorBoundaryComponent />}
+              onError={(error) => console.error('Error caught by boundary:', error)}
+            >
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/upload" element={<Upload />} />
+                <Route path="/battle/:id" element={<BattlePage />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/enhanced-login" element={<EnhancedLogin />} />
+                <Route path="/verify-2fa" element={<Verify2FA />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                <Route path="/slumerican" element={<Slumerican />} />
+                <Route path="/truth" element={<Truth />} />
+                <Route path="/knights-debate" element={<KnightsDebate />} />
+                <Route path="/content-agents" element={<ContentAgents />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ErrorBoundary>
+            <LyraAssistant />
+          </div>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
