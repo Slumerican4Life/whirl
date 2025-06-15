@@ -1,9 +1,12 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Play, Trophy, Zap } from 'lucide-react';
+import { Play, Trophy, Zap, User, UserPlus } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const HeroSection: React.FC = () => {
+  const { user } = useAuth();
+
   return (
     <section className="mb-12 relative">
       {/* Hero Content */}
@@ -28,6 +31,26 @@ const HeroSection: React.FC = () => {
             <span className="text-whirl-blue font-bold"> dominate</span>.
           </p>
         </div>
+
+        {/* Authentication Buttons - Show when not logged in */}
+        {!user && (
+          <div className="flex flex-col sm:flex-row gap-4 items-center mb-8">
+            <Link to="/signup" className="relative group">
+              <button className="btn-glow bg-gradient-to-r from-whirl-purple via-whirl-pink to-whirl-orange text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:scale-105 shadow-2xl flex items-center gap-3">
+                <UserPlus className="w-6 h-6" />
+                Sign Up Free
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-whirl-purple via-whirl-pink to-whirl-orange opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              </button>
+            </Link>
+            
+            <Link to="/login" className="relative group">
+              <button className="glass border-2 border-whirl-purple text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:scale-105 hover:bg-whirl-purple/20 flex items-center gap-3">
+                <User className="w-6 h-6" />
+                Login
+              </button>
+            </Link>
+          </div>
+        )}
 
         {/* Enhanced Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-6 items-center">
